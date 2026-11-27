@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#22325a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="N3 단어장">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>N3 단어장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 시험 전 9일, 차분하고 집중된 개인 학습 도구
+   IDEA: 링으로 묶은 종이 단어 카드(単語帳) + 빨간 가리개 시트
+   PICTURE: 가운데 큰 카드 한 장 — 한자만 크게, 뒤집으면 읽기·뜻
+   COLOUR and TYPE: 흰 종이, 남색(藍) 띠, 주홍 도장색 포인트 / Shippori Mincho 한자, Noto Sans KR 본문
+   LAYOUT: 상단 남색 띠 + 탭, 760px 한 칸 컬럼, 모바일은 그대로 세로 쌓기 */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#11141b);--paper:light-dark(#ffffff,#1a1e28);--ink:light-dark(#15171c,#eceef3);
+--muted:light-dark(#5b6270,#9ea5b2);--line:light-dark(#e2e5eb,#2a303d);--soft:light-dark(#f3f5f8,#151922);
+--ai:light-dark(#22325a,#93abea);--band:light-dark(#22325a,#0c1426);--shu:light-dark(#d23a25,#ff6c56);
+--amb:light-dark(#a86a12,#e6a643);--grn:light-dark(#17805a,#4cc493)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR","Noto Sans JP",system-ui,sans-serif;overflow-x:clip}
+.jp{font-family:"Noto Sans JP","Noto Sans KR",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--paper);border-radius:12px;min-height:44px;padding:0 16px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
+input,select,textarea{font-size:16px;border:1px solid var(--line);background:var(--paper);border-radius:10px;min-height:44px;padding:8px 12px}
+kbd{font:12px/1 ui-monospace,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 5px;color:var(--muted);margin-inline-start:6px}
+header{background:var(--band);color:#fff;padding:max(14px,env(safe-area-inset-top)) max(4vw,16px,env(safe-area-inset-right)) 0 max(4vw,16px,env(safe-area-inset-left))}
+main{padding-bottom:max(64px,env(safe-area-inset-bottom))!important}
+html{-webkit-text-size-adjust:100%}button{touch-action:manipulation}
+.hrow{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font:800 22px/1.1 "Shippori Mincho",serif;letter-spacing:.02em;margin-inline-end:auto}
+.brand span{color:#ffb1a5;font-size:15px;margin-inline-start:6px;font-family:"Noto Sans KR"}
+.chip{font-size:13px;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.chip b{font-weight:700;color:#ffd0c8}
+nav{max-width:760px;margin:12px auto 0;display:flex;gap:4px}
+nav a{color:rgba(255,255,255,.75);text-decoration:none;padding:10px 14px;border-radius:10px 10px 0 0;font-weight:500;font-size:15px}
+nav a[aria-current]{background:var(--bg);color:var(--ink)}
+main{max-width:760px;margin:0 auto;padding:24px max(4vw,16px) 64px}
+h2{font-size:22px;line-height:1.2;margin:0 0 6px}h3{font-size:16px;margin:28px 0 10px}
+.muted{color:var(--muted)}.small{font-size:13px}
+.today{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.stat{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--paper)}
+.stat b{display:block;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.primary{background:var(--ai);color:light-dark(#fff,#0c1426);border-color:var(--ai);font-weight:700}
+.big{width:100%;min-height:56px;font-size:18px;border-radius:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.row>button{flex:1 1 180px}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--soft);margin:8px 0}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-inline-end:6px;vertical-align:-1px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end;height:120px;margin-top:8px}
+.week div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:12px;color:var(--muted);gap:4px}
+.week i{display:block;width:70%;max-width:34px;background:var(--ai);border-radius:5px 5px 2px 2px;min-height:2px}
+.week b{font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.how{background:var(--soft);border-radius:14px;padding:4px 18px 10px;margin-top:28px;font-size:15px}
+.how li{margin:4px 0}
+/* session */
+.sbar{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.track{flex:1;height:8px;background:var(--soft);border-radius:4px;overflow:hidden}.track i{display:block;height:100%;background:var(--shu);transition:width .3s}
+.sbar span{font-size:14px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.sbar button{min-height:38px;font-size:14px}
+.card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:40px 24px 30px;text-align:center;min-height:340px;display:flex;flex-direction:column;justify-content:center;align-items:center;
+box-shadow:0 6px 0 -1px var(--paper),0 6px 0 0 var(--line),0 12px 0 -2px var(--paper),0 12px 0 -1px var(--line),0 24px 40px -24px rgba(0,0,0,.35);margin-bottom:28px}
+.hole{position:absolute;top:18px;left:20px;width:18px;height:18px;border-radius:50%;background:var(--bg);box-shadow:inset 0 2px 3px rgba(0,0,0,.25);border:1px solid var(--line)}
+.ctag{position:absolute;top:16px;right:18px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.ctag.new{color:var(--shu);border-color:var(--shu)}
+.kanji{font:800 min(120px,calc(80vw / var(--len,2)),calc(620px / var(--len,2)))/1.15 "Shippori Mincho",serif;letter-spacing:.02em;color:var(--ink);white-space:nowrap}
+.back{margin-top:18px;border-top:1px dashed var(--line);padding-top:18px;width:100%}
+.back.show{animation:rise .25s ease-out}@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.back.show{animation:none}.track i{transition:none}}
+.read{display:flex;justify-content:center;align-items:center;gap:10px;font:500 clamp(26px,6vw,36px)/1.3 "Noto Sans JP",sans-serif;color:var(--shu)}
+.spk{min-height:40px;width:40px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.spk svg{width:20px;height:20px}
+.mean{font-size:22px;font-weight:700;margin-top:6px}
+.typebox{width:100%;max-width:420px;margin-top:22px}
+.typebox input{width:100%;text-align:center;font-size:20px}
+.prev{min-height:24px;font-size:15px;color:var(--muted);margin-top:6px}
+.verdict{font-weight:700;margin-top:4px}.verdict.ok{color:var(--grn)}.verdict.bad{color:var(--shu)}
+.acts{display:flex;gap:10px;flex-wrap:wrap}.acts button{flex:1 1 200px;min-height:56px;font-size:17px}
+.grades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grades button{min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-width:2px;padding:6px}
+.grades b{font-size:17px}.grades small{font-size:12px;color:var(--muted)}.grades kbd{margin:0}
+.g1{border-color:var(--shu)}.g1 b{color:var(--shu)}.g2 b{color:var(--amb)}.g3 b{color:var(--ai)}.g4 b{color:var(--grn)}
+.grades button.sug{background:var(--soft);outline:3px solid var(--ai);outline-offset:1px}
+.fin{text-align:center;padding:30px 0}
+.fin .score{font:800 52px/1.05 "Shippori Mincho",serif;margin:8px 0}
+.wl{list-style:none;padding:0;margin:20px 0;text-align:start;border-top:1px solid var(--line)}
+.wl li{display:grid;grid-template-columns:minmax(0,7em) minmax(0,9em) minmax(0,1fr);gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);align-items:center}
+.wl .k{font:700 22px/1.2 "Shippori Mincho",serif}.wl .r{color:var(--shu)}
+/* words */
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tools input{flex:1 1 220px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chips button{min-height:36px;border-radius:999px;font-size:14px;padding:0 12px}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.list li{display:grid;grid-template-columns:minmax(0,7.5em) minmax(0,1fr) auto;gap:4px 12px;padding:10px 4px;border-bottom:1px solid var(--line);align-items:center}
+.list .k{font:700 24px/1.2 "Shippori Mincho",serif;grid-row:span 2}
+.list .rm{font-size:15px}.list .r{color:var(--shu);margin-inline-end:8px}
+.list .meta{font-size:12px;color:var(--muted)}
+.list .ops{grid-row:span 2;display:flex;gap:6px}.list .ops button{min-height:36px;font-size:13px;padding:0 10px}
+.badge{font-size:11px;border-radius:999px;padding:1px 8px;margin-inline-end:6px;color:#fff;background:var(--c)}
+.sheet .rm .r,.sheet .rm .m{background:var(--shu);color:transparent;border-radius:4px;cursor:pointer}
+.sheet .rm.open .r,.sheet .rm.open .m{background:none;color:inherit}.sheet .rm.open .r{color:var(--shu)}
+.count{font-size:13px;color:var(--muted);margin-bottom:6px}
+/* settings */
+.field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.field label{font-weight:500}.field .muted{display:block;font-weight:400;font-size:13px}
+.checks{display:flex;flex-wrap:wrap;gap:6px 14px}.checks label{font-weight:400;display:flex;gap:6px;align-items:center;min-height:36px}
+.checks input{min-height:0;width:18px;height:18px}
+textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
+.danger{color:var(--shu);border-color:var(--shu)}
+.kc{cursor:pointer;border-radius:.12em;transition:background .15s}.kc:hover{background:var(--soft)}.kc.on{background:light-dark(#fde3de,#3a2220);color:var(--shu)}
+#pop{position:fixed;z-index:50;display:flex;gap:12px;align-items:center;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);max-width:min(320px,calc(100vw - 16px));font-size:15px;line-height:1.35}
+#pop .pc{font:800 34px/1 "Shippori Mincho",serif}#pop b{display:block;font-weight:700}#pop small{display:block;font-size:13px;opacity:.75;margin-top:2px}
+.hint{font-size:12px;color:var(--muted);margin-top:10px}
+@media (hover:none){kbd{display:none}}
+.sync{font-size:12px;color:var(--muted);text-align:center;margin-top:36px}
+@media(max-width:600px){.list li{grid-template-columns:minmax(0,6em) minmax(0,1fr)}.list .ops{grid-column:1/-1;grid-row:auto}.list .k{grid-row:span 2}.wl li{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.wl li .m{grid-column:1/-1}.card{min-height:300px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="brand">N3 単語帳<span>벼락치기</span></div>
+    <span class="chip" id="dday"></span>
+    <span class="chip" id="streak"></span>
+  </div>
+  <nav>
+    <a href="#study" data-v="study">학습</a>
+    <a href="#words" data-v="words">단어 목록</a>
+    <a href="#setup" data-v="setup">설정 · 기록</a>
+  </nav>
+</header>
+<main>
+<section id="v-study">
+  <div id="home">
+    <h2 id="htitle">오늘의 단어 카드</h2>
+    <p class="muted" id="hsub"></p>
+    <div class="today">
+      <div class="stat"><b id="nDue">0</b><span>복습할 카드</span></div>
+      <div class="stat"><b id="nNew">0</b><span>오늘의 새 단어</span></div>
+    </div>
+    <button class="primary big" id="bStart">학습 시작</button>
+    <div class="row">
+      <button id="bMore">새 단어 20개 더</button>
+      <button id="bWeak">약한 단어 집중 복습</button>
+      <button id="bYday">어제 모른 단어 다시 보기</button>
+    </div>
+    <h3>전체 진도 <span class="muted small" id="totalTxt"></span></h3>
+    <div class="bar" id="pbar"></div>
+    <div class="legend" id="plegend"></div>
+    <h3>최근 7일 학습량</h3>
+    <div class="week" id="week"></div>
+    <div class="how">
+      <h3 style="margin-top:14px">학습 방식</h3>
+      <ul>
+        <li><b>카드 앞면엔 한자만.</b> 뜻과 읽기를 떠올린 뒤 뒤집어서 ‘몰라요 / 알아요’ 중 하나만 누르면 돼요.</li>
+        <li><b>처음 보는 단어가 이미 아는 단어면 ‘패스’.</b> 다시 나오지 않아요. (Memrise · Quizlet 방식)</li>
+        <li><b>‘몰라요’를 누른 카드는 몇 장 뒤 또 나와요.</b> 맞힐 때까지 이번 학습에서 반복돼요.</li>
+        <li><b>하루에 한 번이라도 ‘몰라요’를 누른 단어는 다음 날 꼭 다시 나와요.</b> 다음 날 학습에서 가장 먼저 나오고, ‘어제 모른 단어’ 버튼으로 따로 볼 수도 있어요.</li>
+        <li><b>맞힌 카드는 1일 → 3일 → 7일…처럼 간격을 늘려 다시 나와요.</b> 시험일 전에 모두 한 번 더 보도록 간격을 시험일에 맞춰 줄여요.</li>
+        <li><b>설정에서 ‘읽기 입력’ 모드</b>를 켜면 읽는 법을 직접 입력해 채점해요. 로마자(kanji → かんじ)나 일본어 자판 둘 다 돼요. (WaniKani 방식)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="sess" hidden>
+    <div class="sbar"><div class="track"><i id="sprog"></i></div><span id="sleft"></span><button id="bQuit">그만하기</button></div>
+    <article class="card" id="card">
+      <span class="hole" aria-hidden="true"></span>
+      <span class="ctag" id="ctag"></span>
+      <div class="kanji" id="ck" lang="ja"></div>
+      <div class="typebox" id="ctype" hidden>
+        <input id="cin" lang="ja" placeholder="읽는 법 입력 (예: kanji 또는 かんじ)" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="읽는 법 입력">
+        <div class="prev jp" id="cprev"></div>
+        <div class="verdict" id="cver"></div>
+      </div>
+      <div class="back" id="cback" hidden>
+        <div class="read jp"><span id="cr" lang="ja"></span><button class="spk" id="bSpk" aria-label="발음 듣기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></div>
+        <div class="mean" id="cm"></div>
+        <div class="hint">한자를 누르면 한 글자씩 뜻(훈음)이 보여요</div>
+      </div>
+    </article>
+    <div class="acts" id="fActs">
+      <button class="primary" id="bFlip">정답 보기<kbd>Space</kbd></button>
+      <button id="bPass">이미 알아요 · 패스<kbd>K</kbd></button>
+    </div>
+    <div class="grades" id="gActs" hidden>
+      <button class="g1" data-g="1"><b>몰라요</b><small id="p1"></small><kbd>1</kbd></button>
+      <button class="g3" data-g="3"><b>알아요</b><small id="p3"></small><kbd>2</kbd></button>
+    </div>
+  </div>
+
+  <div id="fin" class="fin" hidden>
+    <p class="muted" id="finSub"></p>
+    <div class="score" id="finScore"></div>
+    <p id="finTxt"></p>
+    <ul class="wl" id="finList"></ul>
+    <div class="row"><button class="primary" id="bAgain">헷갈린 단어 한 번 더</button><button id="bHome">처음으로</button></div>
+  </div>
+</section>
+
+<section id="v-words" hidden>
+  <h2>단어 목록</h2>
+  <p class="muted">빨간 시트를 켜면 읽기·뜻이 가려져요. 가린 부분을 누르면 보여요.</p>
+  <div class="tools">
+    <input id="q" type="search" placeholder="한자 · 읽기 · 뜻 검색" aria-label="검색">
+    <select id="qpos" aria-label="품사"><option value="">모든 품사</option></select>
+    <button id="bSheet" aria-pressed="false">빨간 시트</button>
+  </div>
+  <div class="chips" id="qst"></div>
+  <div class="count" id="qcount"></div>
+  <ul class="list" id="wlist"></ul>
+</section>
+
+<section id="v-setup" hidden>
+  <h2>설정 · 기록</h2>
+  <div class="field"><label for="sNp">하루 새 단어 수<span class="muted">시험까지 남은 날로 나눠 정하면 좋아요</span></label>
+    <select id="sNp"><option>10</option><option>20</option><option>30</option><option>50</option><option>80</option><option>100</option><option>150</option></select></div>
+  <div class="field"><label for="sMode">학습 모드<span class="muted">자가 채점은 빠르고, 읽기 입력은 정확해요</span></label>
+    <select id="sMode"><option value="flip">자가 채점 (카드 뒤집기)</option><option value="type">읽기 입력</option></select></div>
+  <div class="field"><label for="sExam">시험일<span class="muted">2026년 12월 JLPT는 12월 6일(일)</span></label><input type="date" id="sExam"></div>
+  <div class="field"><label for="sCap">시험일 맞춤 간격<span class="muted">복습 간격이 시험일을 넘지 않게 줄여요</span></label><input type="checkbox" id="sCap" style="width:22px;height:22px;min-height:0"></div>
+  <div class="field"><label for="sOrder">새 단어 순서</label>
+    <select id="sOrder"><option value="rand">섞어서</option><option value="base">품사별 순서대로</option></select></div>
+  <div class="field"><label for="sAuto">정답 볼 때 발음 자동 재생</label><input type="checkbox" id="sAuto" style="width:22px;height:22px;min-height:0"></div>
+  <div class="field" style="grid-template-columns:1fr"><label>출제할 품사</label><div class="checks" id="sPos"></div></div>
+
+  <h3>기록 백업</h3>
+  <p class="muted small">기록은 이 휴대폰에 자동 저장돼요. 앱을 지우거나 브라우저 데이터를 삭제하면 기록도 지워지니, 가끔 복사해서 카톡 ‘나와의 채팅’ 등에 보관해 두세요.</p>
+  <div class="row"><button id="bCopy">기록 복사하기</button><button id="bImport">붙여넣은 기록 불러오기</button></div>
+  <textarea id="bk" placeholder="여기에 백업한 기록을 붙여넣고 ‘불러오기’를 누르세요" aria-label="백업 기록"></textarea>
+  <h3>초기화</h3>
+  <div class="row"><button class="danger" id="bReset">모든 학습 기록 지우기</button></div>
+  <p class="small muted" id="setMsg"></p>
+</section>
+<div id="pop" role="tooltip" hidden></div>
+<p class="sync" id="sync">학습 기록은 이 휴대폰에 자동 저장돼요</p>
+</main>
+
+<script>
+{
+const RAW={
+n:`安心|あんしん|안심
+以外|いがい|이외
+意見|いけん|의견
+意識|いしき|의식
+以前|いぜん|이전
+一般|いっぱん|일반
+移動|いどう|이동
+違反|いはん|위반
+印象|いんしょう|인상
+受付|うけつけ|접수(처)
+裏|うら|뒤, 뒷면
+売り場|うりば|매장
+影響|えいきょう|영향
+営業|えいぎょう|영업
+栄養|えいよう|영양
+笑顔|えがお|웃는 얼굴
+延期|えんき|연기(미룸)
+演奏|えんそう|연주
+応援|おうえん|응원
+応募|おうぼ|응모
+横断|おうだん|횡단
+往復|おうふく|왕복
+汚染|おせん|오염
+お互い|おたがい|서로
+温度|おんど|온도
+会員|かいいん|회원
+外食|がいしょく|외식
+解決|かいけつ|해결
+改札|かいさつ|개찰(구)
+解消|かいしょう|해소
+回復|かいふく|회복
+価格|かかく|가격
+学習|がくしゅう|학습
+確認|かくにん|확인
+過去|かこ|과거
+火災|かさい|화재
+課題|かだい|과제
+活動|かつどう|활동
+家庭|かてい|가정
+我慢|がまん|참음, 인내
+環境|かんきょう|환경
+関係|かんけい|관계
+観光|かんこう|관광
+感謝|かんしゃ|감사
+感情|かんじょう|감정
+勘定|かんじょう|계산(값을 치름)
+完成|かんせい|완성
+乾燥|かんそう|건조
+勘違い|かんちがい|착각
+期間|きかん|기간
+期限|きげん|기한
+記事|きじ|기사
+帰宅|きたく|귀가
+基本|きほん|기본
+希望|きぼう|희망
+疑問|ぎもん|의문
+休憩|きゅうけい|휴식
+給料|きゅうりょう|급여, 월급
+協力|きょうりょく|협력
+許可|きょか|허가
+記録|きろく|기록
+禁止|きんし|금지
+近所|きんじょ|근처, 이웃
+緊張|きんちょう|긴장
+空港|くうこう|공항
+苦労|くろう|고생
+訓練|くんれん|훈련
+経営|けいえい|경영
+計算|けいさん|계산
+景色|けしき|경치
+化粧|けしょう|화장
+結果|けっか|결과
+欠席|けっせき|결석
+原因|げんいん|원인
+見学|けんがく|견학
+健康|けんこう|건강
+検査|けんさ|검사
+現在|げんざい|현재
+現金|げんきん|현금
+効果|こうか|효과
+交換|こうかん|교환
+講義|こうぎ|강의
+広告|こうこく|광고
+交差点|こうさてん|교차로
+工事|こうじ|공사
+行動|こうどう|행동
+後輩|こうはい|후배
+興奮|こうふん|흥분
+交通|こうつう|교통
+郊外|こうがい|교외
+高齢者|こうれいしゃ|고령자
+国際|こくさい|국제
+国内|こくない|국내
+個人|こじん|개인
+故障|こしょう|고장
+小銭|こぜに|잔돈
+小包|こづつみ|소포
+献立|こんだて|식단, 메뉴
+混雑|こんざつ|혼잡
+最近|さいきん|최근
+災害|さいがい|재해
+財布|さいふ|지갑
+材料|ざいりょう|재료
+在庫|ざいこ|재고
+作業|さぎょう|작업
+作品|さくひん|작품
+撮影|さつえい|촬영
+作家|さっか|작가
+参加|さんか|참가
+賛成|さんせい|찬성
+残業|ざんぎょう|잔업, 야근
+資格|しかく|자격
+時期|じき|시기
+支給|しきゅう|지급
+資源|しげん|자원
+事故|じこ|사고
+自信|じしん|자신(감)
+自身|じしん|자신(자기 스스로)
+姿勢|しせい|자세
+自然|しぜん|자연
+支出|ししゅつ|지출
+支度|したく|준비, 채비
+失敗|しっぱい|실패
+湿度|しつど|습도
+指定|してい|지정
+自宅|じたく|자택
+指導|しどう|지도(가르침)
+品切れ|しなぎれ|품절
+始発|しはつ|첫차
+支払い|しはらい|지불
+芝生|しばふ|잔디
+自慢|じまん|자랑
+締め切り|しめきり|마감
+借金|しゃっきん|빚
+収入|しゅうにゅう|수입(소득)
+就職|しゅうしょく|취직
+渋滞|じゅうたい|(교통) 정체
+住宅|じゅうたく|주택
+終電|しゅうでん|막차(전철)
+修理|しゅうり|수리
+祝日|しゅくじつ|공휴일
+手術|しゅじゅつ|수술
+主人公|しゅじんこう|주인공
+出身|しゅっしん|출신
+出張|しゅっちょう|출장
+首都|しゅと|수도
+主婦|しゅふ|주부
+種類|しゅるい|종류
+順番|じゅんばん|순번, 차례
+状況|じょうきょう|상황
+条件|じょうけん|조건
+乗客|じょうきゃく|승객
+上司|じょうし|상사
+少子化|しょうしか|저출산
+乗車|じょうしゃ|승차
+症状|しょうじょう|증상
+招待|しょうたい|초대
+商売|しょうばい|장사
+勝負|しょうぶ|승부
+商品|しょうひん|상품
+情報|じょうほう|정보
+将来|しょうらい|장래
+省略|しょうりゃく|생략
+職業|しょくぎょう|직업
+食品|しょくひん|식품
+植物|しょくぶつ|식물
+食欲|しょくよく|식욕
+食器|しょっき|식기
+書類|しょるい|서류
+資料|しりょう|자료
+進学|しんがく|진학
+信号|しんごう|신호(등)
+申請|しんせい|신청
+親戚|しんせき|친척
+身長|しんちょう|신장, 키
+信頼|しんらい|신뢰
+睡眠|すいみん|수면
+数字|すうじ|숫자
+生活|せいかつ|생활
+請求|せいきゅう|청구
+制限|せいげん|제한
+成功|せいこう|성공
+生産|せいさん|생산
+政治|せいじ|정치
+成績|せいせき|성적
+成長|せいちょう|성장
+性格|せいかく|성격
+制服|せいふく|제복, 교복
+製品|せいひん|제품
+正解|せいかい|정답
+税金|ぜいきん|세금
+税込|ぜいこみ|세금 포함
+世代|せだい|세대
+石油|せきゆ|석유
+責任|せきにん|책임
+設備|せつび|설비
+節約|せつやく|절약
+選手|せんしゅ|선수
+先輩|せんぱい|선배
+専門|せんもん|전문
+全員|ぜんいん|전원
+全体|ぜんたい|전체
+線路|せんろ|선로
+騒音|そうおん|소음
+倉庫|そうこ|창고
+操作|そうさ|조작
+葬式|そうしき|장례식
+掃除機|そうじき|청소기
+送料|そうりょう|배송료
+速度|そくど|속도
+祖父|そふ|(자기) 할아버지
+祖母|そぼ|(자기) 할머니
+損|そん|손해
+対応|たいおう|대응
+体温|たいおん|체온
+滞在|たいざい|체재, 머묾
+体重|たいじゅう|체중
+態度|たいど|태도
+代表|だいひょう|대표
+大量|たいりょう|대량
+立場|たちば|입장
+種|たね|씨앗
+他人|たにん|타인, 남
+単位|たんい|단위, 학점
+誕生|たんじょう|탄생
+短所|たんしょ|단점
+団体|だんたい|단체
+団地|だんち|(아파트) 단지
+担当|たんとう|담당
+地域|ちいき|지역
+近道|ちかみち|지름길
+地球|ちきゅう|지구
+遅刻|ちこく|지각
+中止|ちゅうし|중지
+注文|ちゅうもん|주문
+駐車場|ちゅうしゃじょう|주차장
+長所|ちょうしょ|장점
+調査|ちょうさ|조사
+頂上|ちょうじょう|정상
+長男|ちょうなん|장남
+貯金|ちょきん|저금
+通勤|つうきん|통근
+通訳|つうやく|통역
+都合|つごう|사정, 형편
+提出|ていしゅつ|제출
+程度|ていど|정도
+停留所|ていりゅうじょ|정류장
+手続き|てつづき|수속, 절차
+徹夜|てつや|밤샘
+伝統|でんとう|전통
+電池|でんち|전지, 건전지
+展示|てんじ|전시
+天井|てんじょう|천장
+到着|とうちゃく|도착
+投票|とうひょう|투표
+登録|とうろく|등록
+道具|どうぐ|도구
+都会|とかい|도시, 도회지
+特徴|とくちょう|특징
+独身|どくしん|독신
+取引|とりひき|거래
+努力|どりょく|노력
+内容|ないよう|내용
+仲間|なかま|동료, 한패
+悩み|なやみ|고민
+日常|にちじょう|일상
+入場|にゅうじょう|입장
+人気|にんき|인기
+値上げ|ねあげ|가격 인상
+値下げ|ねさげ|가격 인하
+値段|ねだん|가격, 값
+年金|ねんきん|연금
+燃料|ねんりょう|연료
+年齢|ねんれい|연령
+能力|のうりょく|능력
+倍|ばい|배(배수)
+配送|はいそう|배송
+配達|はいたつ|배달
+拍手|はくしゅ|박수
+発見|はっけん|발견
+発表|はっぴょう|발표
+花びら|はなびら|꽃잎
+範囲|はんい|범위
+半額|はんがく|반값
+反省|はんせい|반성
+判断|はんだん|판단
+番組|ばんぐみ|(방송) 프로그램
+被害|ひがい|피해
+比較|ひかく|비교
+非常|ひじょう|비상
+避難|ひなん|피난
+否定|ひてい|부정
+皮膚|ひふ|피부
+秘密|ひみつ|비밀
+表情|ひょうじょう|표정
+評判|ひょうばん|평판
+費用|ひよう|비용
+広場|ひろば|광장
+不安|ふあん|불안
+夫婦|ふうふ|부부
+封筒|ふうとう|봉투
+不足|ふそく|부족
+双子|ふたご|쌍둥이
+普段|ふだん|평소
+物価|ぶっか|물가
+部分|ぶぶん|부분
+舞台|ぶたい|무대
+平均|へいきん|평균
+変化|へんか|변화
+返事|へんじ|대답, 답장
+返品|へんぴん|반품
+方向|ほうこう|방향
+報告|ほうこく|보고
+包装|ほうそう|포장
+方法|ほうほう|방법
+訪問|ほうもん|방문
+方角|ほうがく|방위, 방향
+包丁|ほうちょう|부엌칼
+法律|ほうりつ|법률
+保険|ほけん|보험
+保存|ほぞん|보존, 저장
+歩道|ほどう|보도, 인도
+本人|ほんにん|본인
+本物|ほんもの|진짜
+迷子|まいご|미아
+孫|まご|손주
+間違い|まちがい|실수, 틀림
+窓口|まどぐち|창구
+満員|まんいん|만원
+満足|まんぞく|만족
+味方|みかた|자기 편, 아군
+未来|みらい|미래
+魅力|みりょく|매력
+無料|むりょう|무료
+目印|めじるし|표시, 표적
+面接|めんせつ|면접
+毛布|もうふ|담요
+目的|もくてき|목적
+目標|もくひょう|목표
+文字|もじ|문자, 글자
+物語|ものがたり|이야기
+役割|やくわり|역할
+家賃|やちん|집세
+薬局|やっきょく|약국
+有料|ゆうりょう|유료
+優勝|ゆうしょう|우승
+輸出|ゆしゅつ|수출
+輸入|ゆにゅう|수입
+容器|ようき|용기(그릇)
+要求|ようきゅう|요구
+様子|ようす|모습, 상태
+予算|よさん|예산
+予報|よほう|예보
+予防|よぼう|예방
+予習|よしゅう|예습
+理解|りかい|이해
+離婚|りこん|이혼
+利用|りよう|이용
+料金|りょうきん|요금
+両替|りょうがえ|환전
+留守|るす|부재중
+冷凍|れいとう|냉동
+冷蔵庫|れいぞうこ|냉장고
+連続|れんぞく|연속
+連絡|れんらく|연락
+路線|ろせん|노선
+若者|わかもの|젊은이
+割合|わりあい|비율
+割引|わりびき|할인
+話題|わだい|화제
+宛先|あてさき|수신처
+宛名|あてな|수신인 이름
+暗記|あんき|암기
+居眠り|いねむり|졸음, 앉아서 졺
+田舎|いなか|시골
+行き先|いきさき|행선지
+運賃|うんちん|운임
+液体|えきたい|액체
+温泉|おんせん|온천
+お祝い|おいわい|축하
+お釣り|おつり|거스름돈
+横断歩道|おうだんほどう|횡단보도
+海外|かいがい|해외
+解答|かいとう|해답
+快速|かいそく|쾌속
+各駅|かくえき|각 역(정차)
+片道|かたみち|편도
+画面|がめん|화면
+家具|かぐ|가구
+看板|かんばん|간판
+患者|かんじゃ|환자
+観客|かんきゃく|관객
+機能|きのう|기능
+記者|きしゃ|기자
+記念|きねん|기념
+企画|きかく|기획
+救急車|きゅうきゅうしゃ|구급차
+行事|ぎょうじ|행사
+競争|きょうそう|경쟁
+距離|きょり|거리
+金属|きんぞく|금속
+怪我|けが|부상, 상처
+経済|けいざい|경제
+契約|けいやく|계약
+下車|げしゃ|하차
+講座|こうざ|강좌
+恋人|こいびと|애인
+芸術|げいじゅつ|예술
+人口|じんこう|인구
+宇宙|うちゅう|우주
+太陽|たいよう|태양
+空気|くうき|공기
+防災|ぼうさい|방재
+洗濯機|せんたくき|세탁기
+男性|だんせい|남성
+女性|じょせい|여성
+相手|あいて|상대
+地面|じめん|지면, 땅
+汗|あせ|땀
+息|いき|숨
+命|いのち|생명, 목숨
+腕|うで|팔, 솜씨
+噂|うわさ|소문
+奥|おく|안쪽, 깊숙한 곳
+表|おもて|겉, 앞면
+辺り|あたり|부근, 근처
+周り|まわり|주위
+傷|きず|상처
+癖|くせ|버릇
+首|くび|목
+煙|けむり|연기
+差|さ|차이
+坂|さか|언덕, 비탈
+島|しま|섬
+隅|すみ|구석
+底|そこ|바닥, 밑
+棚|たな|선반
+罪|つみ|죄
+涙|なみだ|눈물
+波|なみ|파도
+喉|のど|목구멍
+端|はし|끝, 가장자리
+旗|はた|깃발
+畑|はたけ|밭
+針|はり|바늘
+腹|はら|배(신체)
+額|ひたい|이마
+袋|ふくろ|봉지, 주머니
+頬|ほお|볼, 뺨
+湖|みずうみ|호수
+港|みなと|항구
+胸|むね|가슴
+床|ゆか|마루, 바닥
+指|ゆび|손가락
+列|れつ|줄, 열
+訳|わけ|이유, 까닭
+腰|こし|허리
+肩|かた|어깨
+爪|つめ|손톱, 발톱
+霧|きり|안개
+岩|いわ|바위
+砂|すな|모래
+泥|どろ|진흙
+枝|えだ|가지
+布|ぬの|천
+糸|いと|실
+枕|まくら|베개
+鍵|かぎ|열쇠
+鏡|かがみ|거울
+鍋|なべ|냄비
+手袋|てぶくろ|장갑
+靴下|くつした|양말
+香り|かおり|향기
+匂い|におい|냄새
+米|こめ|쌀
+豆|まめ|콩
+油|あぶら|기름
+酢|す|식초
+汁|しる|국물
+券|けん|표, 권
+例|れい|예, 보기
+今後|こんご|앞으로, 향후`,
+v:`預ける|あずける|맡기다
+与える|あたえる|주다, 부여하다
+扱う|あつかう|다루다, 취급하다
+浴びる|あびる|(샤워를) 하다, 뒤집어쓰다
+余る|あまる|남다
+編む|あむ|뜨다, 엮다
+謝る|あやまる|사과하다
+争う|あらそう|다투다
+現れる|あらわれる|나타나다
+表す|あらわす|나타내다, 표현하다
+慌てる|あわてる|당황하다, 허둥대다
+祈る|いのる|기도하다, 빌다
+祝う|いわう|축하하다
+植える|うえる|심다
+受ける|うける|받다, (시험을) 치다
+失う|うしなう|잃다
+疑う|うたがう|의심하다
+訴える|うったえる|호소하다, 고소하다
+埋める|うめる|묻다, 메우다
+敬う|うやまう|공경하다
+得る|える|얻다
+追う|おう|쫓다
+覆う|おおう|덮다
+補う|おぎなう|보충하다
+贈る|おくる|(선물을) 보내다
+遅れる|おくれる|늦다
+起こる|おこる|(일이) 일어나다
+抑える|おさえる|억누르다, 막다
+納める|おさめる|납부하다
+教わる|おそわる|배우다
+恐れる|おそれる|두려워하다
+落ち着く|おちつく|침착하다, 안정되다
+劣る|おとる|뒤떨어지다
+驚く|おどろく|놀라다
+衰える|おとろえる|쇠약해지다
+及ぶ|およぶ|미치다, 이르다
+降ろす|おろす|(탈것에서) 내려 주다, 내리다
+下ろす|おろす|내리다, (돈을) 찾다
+抱える|かかえる|껴안다, 떠안다
+輝く|かがやく|빛나다
+限る|かぎる|한정하다
+隠す|かくす|숨기다
+重ねる|かさねる|겹치다, 거듭하다
+稼ぐ|かせぐ|(돈을) 벌다
+固まる|かたまる|굳다
+片付ける|かたづける|정리하다
+傾く|かたむく|기울다
+叶う|かなう|(꿈이) 이루어지다
+悲しむ|かなしむ|슬퍼하다
+構う|かまう|상관하다, 신경 쓰다
+乾く|かわく|마르다
+感じる|かんじる|느끼다
+効く|きく|(약이) 듣다, 효과가 있다
+傷つく|きずつく|상처 입다
+鍛える|きたえる|단련하다
+嫌う|きらう|싫어하다
+区切る|くぎる|구분하다, 끊다
+崩れる|くずれる|무너지다
+配る|くばる|나누어 주다
+組む|くむ|짜다, 짝을 이루다
+暮らす|くらす|살다, 생활하다
+比べる|くらべる|비교하다
+繰り返す|くりかえす|반복하다
+加える|くわえる|더하다
+削る|けずる|깎다
+越える|こえる|넘다
+焦げる|こげる|타다, 눌어붙다
+断る|ことわる|거절하다
+混む|こむ|붐비다
+転ぶ|ころぶ|넘어지다
+壊す|こわす|부수다, 고장 내다
+下がる|さがる|내려가다
+叫ぶ|さけぶ|외치다
+避ける|さける|피하다
+支える|ささえる|지탱하다
+刺す|さす|찌르다
+誘う|さそう|권유하다, 꾀다
+冷める|さめる|식다
+覚める|さめる|(잠이) 깨다
+去る|さる|떠나다
+触る|さわる|만지다
+沈む|しずむ|가라앉다
+従う|したがう|따르다
+縛る|しばる|묶다
+絞る|しぼる|짜다
+示す|しめす|보이다, 나타내다
+占める|しめる|차지하다
+湿る|しめる|축축해지다
+知らせる|しらせる|알리다
+信じる|しんじる|믿다
+過ぎる|すぎる|지나다
+過ごす|すごす|지내다
+進む|すすむ|나아가다
+勧める|すすめる|권하다
+済む|すむ|끝나다, 해결되다
+迫る|せまる|다가오다, 강요하다
+責める|せめる|비난하다, 탓하다
+育つ|そだつ|자라다
+備える|そなえる|대비하다, 갖추다
+揃う|そろう|갖추어지다, 모이다
+倒れる|たおれる|쓰러지다
+高める|たかめる|높이다
+足す|たす|더하다
+確かめる|たしかめる|확인하다
+助ける|たすける|돕다, 구하다
+訪ねる|たずねる|방문하다
+尋ねる|たずねる|묻다
+戦う|たたかう|싸우다
+畳む|たたむ|개다, 접다
+建つ|たつ|(건물이) 서다
+例える|たとえる|예를 들다, 비유하다
+騙す|だます|속이다
+黙る|だまる|입을 다물다
+溜まる|たまる|쌓이다, 고이다
+貯める|ためる|(돈을) 모으다
+頼る|たよる|의지하다
+近づく|ちかづく|다가가다
+縮む|ちぢむ|줄어들다
+散らかる|ちらかる|어질러지다
+散る|ちる|(꽃이) 지다, 흩어지다
+通じる|つうじる|통하다
+捕まえる|つかまえる|붙잡다
+就く|つく|(직업에) 종사하다, 취임하다
+付き合う|つきあう|사귀다, 어울리다
+伝える|つたえる|전하다
+続く|つづく|계속되다
+包む|つつむ|싸다, 포장하다
+勤める|つとめる|근무하다
+努める|つとめる|노력하다
+繋ぐ|つなぐ|잇다, 연결하다
+潰す|つぶす|찌부러뜨리다, 망치다
+詰める|つめる|채워 넣다
+積もる|つもる|쌓이다
+釣る|つる|낚다
+出会う|であう|(우연히) 만나다
+問い合わせる|といあわせる|문의하다
+通す|とおす|통과시키다
+溶ける|とける|녹다
+解く|とく|풀다
+届く|とどく|닿다, 도착하다
+整える|ととのえる|정돈하다, 갖추다
+飛ばす|とばす|날리다, 건너뛰다
+取り消す|とりけす|취소하다
+取り替える|とりかえる|교환하다
+直す|なおす|고치다
+流す|ながす|흘리다
+眺める|ながめる|바라보다
+慰める|なぐさめる|위로하다
+無くす|なくす|잃어버리다, 없애다
+殴る|なぐる|때리다
+悩む|なやむ|고민하다
+並ぶ|ならぶ|줄 서다, 늘어서다
+鳴る|なる|울리다
+慣れる|なれる|익숙해지다
+握る|にぎる|쥐다
+逃げる|にげる|도망치다
+濁る|にごる|탁해지다
+似る|にる|닮다
+抜く|ぬく|빼다, 뽑다
+盗む|ぬすむ|훔치다
+塗る|ぬる|바르다, 칠하다
+濡れる|ぬれる|젖다
+願う|ねがう|바라다
+狙う|ねらう|노리다
+残す|のこす|남기다
+除く|のぞく|제외하다
+覗く|のぞく|엿보다, 들여다보다
+望む|のぞむ|바라다
+伸ばす|のばす|늘이다, (머리를) 기르다
+延ばす|のばす|연장하다, 미루다
+述べる|のべる|진술하다
+乗り換える|のりかえる|갈아타다
+計る|はかる|(시간·수를) 재다
+挟む|はさむ|끼우다
+外す|はずす|떼다, 벗기다
+外れる|はずれる|빠지다, 빗나가다
+話し合う|はなしあう|의논하다
+離れる|はなれる|떨어지다, 멀어지다
+省く|はぶく|생략하다, 덜다
+貼る|はる|붙이다
+晴れる|はれる|(날씨가) 개다
+冷える|ひえる|차가워지다
+光る|ひかる|빛나다
+引き出す|ひきだす|꺼내다, 인출하다
+響く|ひびく|울리다
+冷やす|ひやす|차게 하다, 식히다
+広がる|ひろがる|넓어지다, 퍼지다
+拾う|ひろう|줍다
+増える|ふえる|늘다
+含む|ふくむ|포함하다
+膨らむ|ふくらむ|부풀다
+防ぐ|ふせぐ|막다, 방지하다
+振る|ふる|흔들다
+震える|ふるえる|떨다
+減る|へる|줄다
+誇る|ほこる|자랑하다
+干す|ほす|말리다, 널다
+褒める|ほめる|칭찬하다
+任せる|まかせる|맡기다
+曲がる|まがる|구부러지다, (길을) 돌다
+混ぜる|まぜる|섞다
+間違える|まちがえる|틀리다, 잘못 알다
+守る|まもる|지키다
+迷う|まよう|헤매다, 망설이다
+回る|まわる|돌다
+見送る|みおくる|배웅하다
+磨く|みがく|닦다
+認める|みとめる|인정하다
+向かう|むかう|향하다
+迎える|むかえる|맞이하다
+結ぶ|むすぶ|묶다, 맺다
+目指す|めざす|목표로 하다
+申し込む|もうしこむ|신청하다
+燃える|もえる|타다
+燃やす|もやす|태우다
+用いる|もちいる|이용하다, 쓰다
+戻す|もどす|되돌리다
+求める|もとめる|구하다, 요구하다
+焼く|やく|굽다, 태우다
+雇う|やとう|고용하다
+破る|やぶる|찢다, (약속을) 어기다
+破れる|やぶれる|찢어지다
+辞める|やめる|(일을) 그만두다
+譲る|ゆずる|양보하다
+許す|ゆるす|용서하다, 허락하다
+揺れる|ゆれる|흔들리다
+汚す|よごす|더럽히다
+酔う|よう|취하다
+喜ぶ|よろこぶ|기뻐하다
+寄る|よる|들르다, 다가가다
+沸く|わく|끓다
+分かれる|わかれる|나뉘다
+別れる|わかれる|헤어지다
+分ける|わける|나누다
+渡す|わたす|건네다
+割る|わる|깨다, 나누다
+割れる|われる|깨지다`,
+i:`怪しい|あやしい|수상하다
+荒い|あらい|거칠다
+浅い|あさい|얕다
+羨ましい|うらやましい|부럽다
+美しい|うつくしい|아름답다
+薄い|うすい|얇다, 연하다
+偉い|えらい|훌륭하다, 대단하다
+惜しい|おしい|아깝다, 아쉽다
+恐ろしい|おそろしい|무섭다
+大人しい|おとなしい|얌전하다
+幼い|おさない|어리다
+可笑しい|おかしい|이상하다, 우습다
+賢い|かしこい|현명하다
+固い|かたい|딱딱하다, 굳다
+痒い|かゆい|가렵다
+辛い|からい・つらい|맵다 / (つらい) 괴롭다
+汚い|きたない|더럽다
+厳しい|きびしい|엄하다, 혹독하다
+臭い|くさい|냄새나다, 구리다
+悔しい|くやしい|분하다
+苦しい|くるしい|괴롭다, 고통스럽다
+詳しい|くわしい|자세하다
+険しい|けわしい|험하다
+濃い|こい|진하다
+細かい|こまかい|잘다, 세세하다
+騒がしい|さわがしい|시끄럽다
+塩辛い|しおからい|짜다
+仕方ない|しかたない|어쩔 수 없다
+親しい|したしい|친하다
+酸っぱい|すっぱい|시다
+素晴らしい|すばらしい|훌륭하다
+鋭い|するどい|날카롭다
+正しい|ただしい|옳다, 바르다
+情けない|なさけない|한심하다
+懐かしい|なつかしい|그립다
+憎い|にくい|밉다
+鈍い|にぶい|둔하다
+温い|ぬるい|미지근하다
+眠い|ねむい|졸리다
+激しい|はげしい|격하다, 심하다
+恥ずかしい|はずかしい|부끄럽다
+深い|ふかい|깊다
+貧しい|まずしい|가난하다
+眩しい|まぶしい|눈부시다
+蒸し暑い|むしあつい|무덥다
+珍しい|めずらしい|드물다, 희귀하다
+面倒臭い|めんどうくさい|귀찮다
+申し訳ない|もうしわけない|죄송하다
+勿体ない|もったいない|아깝다
+易しい|やさしい|쉽다
+優しい|やさしい|상냥하다
+柔らかい|やわらかい|부드럽다
+緩い|ゆるい|느슨하다, 완만하다`,
+na:`明らか|あきらか|분명함
+鮮やか|あざやか|선명함
+新た|あらた|새로움
+安全|あんぜん|안전
+意外|いがい|의외
+意地悪|いじわる|심술궂음
+一生懸命|いっしょうけんめい|열심히 함
+穏やか|おだやか|온화함
+主|おも|주요함
+活発|かっぱつ|활발
+勝手|かって|제멋대로
+可能|かのう|가능
+完璧|かんぺき|완벽
+危険|きけん|위험
+気軽|きがる|부담 없음
+貴重|きちょう|귀중
+急激|きゅうげき|급격
+器用|きよう|손재주가 좋음, 요령 좋음
+気楽|きらく|마음 편함
+豪華|ごうか|호화로움
+困難|こんなん|곤란
+最高|さいこう|최고
+盛ん|さかん|왕성함, 성행함
+様々|さまざま|여러 가지
+爽やか|さわやか|상쾌함
+幸せ|しあわせ|행복
+地味|じみ|수수함
+自由|じゆう|자유
+重要|じゅうよう|중요
+十分|じゅうぶん|충분
+柔軟|じゅうなん|유연
+上品|じょうひん|고상함, 품위 있음
+消極的|しょうきょくてき|소극적
+深刻|しんこく|심각
+新鮮|しんせん|신선
+慎重|しんちょう|신중
+素直|すなお|순수함, 고분고분함
+素敵|すてき|멋짐
+正確|せいかく|정확
+正式|せいしき|정식
+贅沢|ぜいたく|사치스러움
+積極的|せっきょくてき|적극적
+率直|そっちょく|솔직
+退屈|たいくつ|지루함
+確か|たしか|확실함
+単純|たんじゅん|단순
+丁寧|ていねい|정중함, 꼼꼼함
+適当|てきとう|적당함, 대충함
+得意|とくい|자신 있음, 잘함
+苦手|にがて|서투름, 질색
+賑やか|にぎやか|번화함, 떠들썩함
+熱心|ねっしん|열심
+派手|はで|화려함
+必要|ひつよう|필요
+複雑|ふくざつ|복잡
+不思議|ふしぎ|이상함, 신기함
+不満|ふまん|불만
+平気|へいき|태연함, 아무렇지 않음
+真面目|まじめ|성실함
+見事|みごと|훌륭함, 멋짐
+無理|むり|무리
+迷惑|めいわく|폐, 민폐
+面倒|めんどう|귀찮음, 번거로움
+優秀|ゆうしゅう|우수
+豊か|ゆたか|풍부함, 풍요로움
+緩やか|ゆるやか|완만함, 느슨함
+楽|らく|편함
+乱暴|らんぼう|난폭
+立派|りっぱ|훌륭함
+冷静|れいせい|냉정, 침착
+僅か|わずか|불과, 약간`,
+adv:`相変わらず|あいかわらず|여전히
+改めて|あらためて|새삼, 다시
+案外|あんがい|의외로
+一応|いちおう|일단
+一度に|いちどに|한꺼번에
+一層|いっそう|한층
+一体|いったい|도대체
+一斉に|いっせいに|일제히
+今にも|いまにも|당장이라도
+主に|おもに|주로
+思わず|おもわず|무심코, 나도 모르게
+必ず|かならず|반드시
+仮に|かりに|만약, 임시로
+急に|きゅうに|갑자기
+結局|けっきょく|결국
+決して|けっして|결코
+早速|さっそく|즉시, 곧바로
+次第に|しだいに|점차
+実際|じっさい|실제로
+実は|じつは|실은
+徐々に|じょじょに|서서히
+少々|しょうしょう|조금, 잠시
+少しも|すこしも|조금도
+既に|すでに|이미
+随分|ずいぶん|꽤, 몹시
+是非|ぜひ|꼭
+絶対|ぜったい|절대(로)
+相当|そうとう|상당히
+大して|たいして|그다지, 별로
+大抵|たいてい|대개
+多少|たしょう|다소
+直ちに|ただちに|즉시
+例えば|たとえば|예를 들면
+直接|ちょくせつ|직접
+次々|つぎつぎ|잇달아
+常に|つねに|항상
+同時に|どうじに|동시에
+特に|とくに|특히
+突然|とつぜん|갑자기, 돌연
+共に|ともに|함께
+半ば|なかば|절반, 중간쯤
+何となく|なんとなく|왠지, 어쩐지
+再び|ふたたび|다시, 재차
+普通|ふつう|보통
+別に|べつに|별로, 따로
+正に|まさに|바로, 틀림없이
+真っ直ぐ|まっすぐ|똑바로
+全く|まったく|전혀, 완전히
+間もなく|まもなく|곧, 머지않아
+自ら|みずから|스스로
+滅多に|めったに|좀처럼
+勿論|もちろん|물론
+最も|もっとも|가장
+元々|もともと|원래
+割と|わりと|비교적`};
+const POS={n:'명사',v:'동사',i:'い형용사',na:'な형용사',adv:'부사'};
+const WORDS=[],seenK=new Set();
+for(const p in RAW)for(const line of RAW[p].trim().split('\n')){const [k,r,m]=line.split('|');if(!k||seenK.has(k))continue;seenK.add(k);WORDS.push({k,r,m,p})}
+const W=Object.fromEntries(WORDS.map(w=>[w.k,w]));
+const HJ={};`安편안 안,心마음 심,以써 이,外바깥 외,意뜻 의,見볼 견,識알 식,前앞 전,一한 일,般일반 반,移옮길 이,動움직일 동,違어긋날 위,反돌이킬 반,印도장 인,象코끼리 상,受받을 수,付줄 부,裏속 리,売(賣)팔 매,場마당 장,影그림자 영,響울릴 향,営(營)경영할 영,業업 업,栄(榮)영화 영,養기를 양,笑웃음 소,顔얼굴 안,延늘일 연,期기약할 기,演펼 연,奏아뢸 주,応(應)응할 응,援도울 원,募모을 모,横(橫)가로 횡,断(斷)끊을 단,往갈 왕,復회복할 복,汚더러울 오,染물들 염,互서로 호,温(溫)따뜻할 온,度법도 도,会(會)모일 회,員인원 원,食밥 식,解풀 해,決결단할 결,改고칠 개,札편지 찰,消사라질 소,回돌아올 회,価(價)값 가,格격식 격,学(學)배울 학,習익힐 습,確굳을 확,認알 인,過지날 과,去갈 거,火불 화,災재앙 재,課공부할 과,題제목 제,活살 활,家집 가,庭뜰 정,我나 아,慢거만할 만,環고리 환,境지경 경,関(關)관계할 관,係맬 계,観(觀)볼 관,光빛 광,感느낄 감,謝사례할 사,情뜻 정,勘헤아릴 감,定정할 정,完완전할 완,成이룰 성,乾마를 건,燥마를 조,間사이 간,限한할 한,記기록할 기,事일 사,帰(歸)돌아갈 귀,宅집 택,基터 기,本근본 본,希바랄 희,望바랄 망,疑의심할 의,問물을 문,休쉴 휴,憩쉴 게,給줄 급,料헤아릴 료,協화합할 협,力힘 력,許허락할 허,可옳을 가,録(錄)기록할 록,禁금할 금,止그칠 지,近가까울 근,所바 소,緊긴할 긴,張베풀 장,空빌 공,港항구 항,苦쓸 고,労(勞)일할 로,訓가르칠 훈,練익힐 련,経(經)지날 경,計셀 계,算셈 산,景볕 경,色빛 색,化될 화,粧단장할 장,結맺을 결,果실과 과,欠(缺)이지러질 결,席자리 석,原근원 원,因인할 인,健굳셀 건,康편안 강,検(檢)검사할 검,査조사할 사,現나타날 현,在있을 재,金쇠 금,効(效)본받을 효,交사귈 교,換바꿀 환,講욀 강,義옳을 의,広(廣)넓을 광,告고할 고,差다를 차,点(點)점 점,工장인 공,行다닐 행,後뒤 후,輩무리 배,興일 흥,奮떨칠 분,通통할 통,郊들 교,高높을 고,齢(齡)나이 령,者놈 자,国(國)나라 국,際즈음 제,内안 내,個낱 개,人사람 인,故연고 고,障막을 장,小작을 소,銭(錢)돈 전,包쌀 포,献(獻)드릴 헌,立설 립,混섞을 혼,雑(雜)섞일 잡,最가장 최,害해할 해,財재물 재,布베 포,材재목 재,庫곳집 고,作지을 작,品물건 품,撮모을 촬 · 사진 찍을 촬,参(參)참여할 참,加더할 가,賛(贊)도울 찬,残(殘)남을 잔,資재물 자,時때 시,支지탱할 지,源근원 원,自스스로 자,信믿을 신,身몸 신,姿모양 자,勢형세 세,然그럴 연,出날 출,失잃을 실,敗패할 패,湿(濕)젖을 습,指가리킬 지,導인도할 도,切끊을 절,始비로소 시,発(發)필 발,払(拂)떨칠 불,芝지초 지,生날 생,締맺을 체,借빌릴 차,収(收)거둘 수,入들 입,就나아갈 취,職직분 직,渋(澁)떫을 삽,滞(滯)막힐 체,住살 주,終마칠 종,電번개 전,修닦을 수,理다스릴 리,祝빌 축,日날 일,手손 수,術재주 술,主주인 주,公공평할 공,首머리 수,都도읍 도,婦며느리 부,種씨 종,類무리 류,順순할 순,番차례 번,状(狀)형상 상,況상황 황,条(條)가지 조,件물건 건,乗(乘)탈 승,客손 객,上위 상,司맡을 사,少적을 소,子아들 자,車수레 차,症증세 증,招부를 초,待기다릴 대,商장사 상,勝이길 승,負질 부,報갚을 보 · 알릴 보,将(將)장수 장,来(來)올 래,省덜 생 · 살필 성,略간략할 략,植심을 식,物물건 물,欲하고자 할 욕,器그릇 기,書글 서,進나아갈 진,号(號)이름 호,申펼 신,請청할 청,親친할 친,戚친척 척,長길 장,頼(賴)의뢰할 뢰,睡졸음 수,眠잘 면,数(數)셈 수,字글자 자,求구할 구,制절제할 제,功공 공,産낳을 산,政정사 정,治다스릴 치,績길쌈 적,性성품 성,服옷 복,製지을 제,正바를 정,税(稅)세금 세,込일본에서 만든 한자 · 넣다(こむ),世인간 세,代대신할 대,石돌 석,油기름 유,責꾸짖을 책,任맡길 임,設베풀 설,備갖출 비,節마디 절,約맺을 약,選가릴 선,先먼저 선,専(專)오로지 전,門문 문,全온전할 전,体(體)몸 체,線줄 선,路길 로,騒(騷)떠들 소,音소리 음,倉곳집 창,操잡을 조,葬장사 지낼 장,式법 식,掃쓸 소,除덜 제,機틀 기,送보낼 송,速빠를 속,祖할아비 조,父아비 부,母어미 모,損덜 손,対(對)대할 대,重무거울 중,態모습 태,表겉 표,大큰 대,量헤아릴 량,他다를 타,単(單)홑 단,位자리 위,誕낳을 탄,短짧을 단,団(團)둥글 단,地땅 지,担(擔)멜 담,当(當)마땅 당,域지경 역,道길 도,球공 구,遅(遲)늦을 지,刻새길 각,中가운데 중,注부을 주,文글월 문,駐머무를 주,調고를 조,頂정수리 정,男사내 남,貯쌓을 저,勤부지런할 근,訳(譯)번역할 역,合합할 합,提끌 제,程한도 정,停머무를 정,留머무를 류,続(續)이을 속,徹통할 철,夜밤 야,伝(傳)전할 전,統거느릴 통,池못 지,展펼 전,示보일 시,天하늘 천,井우물 정,到이를 도,着붙을 착,投던질 투,票표 표,登오를 등,具갖출 구,特특별할 특,徴(徵)부를 징,独(獨)홀로 독,取가질 취,引끌 인,努힘쓸 노,容얼굴 용,仲버금 중,悩(惱)번뇌할 뇌,常떳떳할 상,気(氣)기운 기,値값 치,下아래 하,段층계 단,年해 년,燃탈 연,能능할 능,倍곱 배,配나눌 배,達통달할 달,拍칠 박,花꽃 화,範법 범,囲(圍)에워쌀 위,半반 반,額이마 액,判판단할 판,組짤 조,被입을 피,比견줄 비,較견줄 교,非아닐 비,避피할 피,難어려울 난,否아닐 부,皮가죽 피,膚살갗 부,秘(祕)숨길 비,密빽빽할 밀,評평할 평,費쓸 비,用쓸 용,不아닐 불,夫지아비 부,封봉할 봉,筒대롱 통,足발 족,双(雙)두 쌍,普넓을 보,部떼 부,分나눌 분,舞춤출 무,台(臺)대 대,平평평할 평,均고를 균,変(變)변할 변,返돌이킬 반,方모 방,向향할 향,装(裝)꾸밀 장,法법 법,訪찾을 방,角뿔 각,丁고무래 정,律법칙 률,保지킬 보,険(險)험할 험,存있을 존,歩(步)걸음 보,迷미혹할 미,孫손자 손,窓창 창,口입 구,満(滿)찰 만,味맛 미,未아닐 미,魅매혹할 매,無없을 무,目눈 목,面낯 면,接이을 접,毛털 모,的과녁 적,標표할 표,語말씀 어,役부릴 역,割벨 할,賃품삯 임,薬(藥)약 약,局판 국,有있을 유,優넉넉할 우,輸보낼 수,要요긴할 요,様(樣)모양 양,予(豫)미리 예,防막을 방,離떠날 리,婚혼인할 혼,利이로울 리,両(兩)두 량,替바꿀 체,守지킬 수,冷찰 랭,凍얼 동,蔵(藏)감출 장,連잇닿을 련,絡이을 락,若같을 약 · 일본어에선 '젊다',話말씀 화,宛완연할 완 · 일본어에선 '~앞(수신)',名이름 명,暗어두울 암,居살 거,田밭 전,舎(舍)집 사,運옮길 운,液진 액,泉샘 천,釣낚을 조,海바다 해,答대답 답,快쾌할 쾌,各각각 각,駅(驛)역 역,片조각 편,画(畫)그림 화,看볼 간,板널빤지 판,患근심 환,念생각 념,企꾀할 기,救구원할 구,急급할 급,競다툴 경,争(爭)다툴 쟁,距떨어질 거,属(屬)무리 속,怪괴이할 괴,済(濟)건널 제,契맺을 계,座자리 좌,恋(戀)그리워할 련,芸(藝)재주 예,宇집 우,宙집 주,太클 태,陽볕 양,洗씻을 세,濯씻을 탁,女여자 녀,相서로 상,汗땀 한,息쉴 식,命목숨 명,腕팔 완,噂수군거릴 준,奥(奧)깊을 오,辺(邊)가 변,周두루 주,傷다칠 상,癖버릇 벽,煙연기 연,坂언덕 판,島섬 도,隅모퉁이 우,底밑 저,棚선반 붕,罪허물 죄,涙(淚)눈물 루,波물결 파,喉목구멍 후,端끝 단,旗기 기,畑일본에서 만든 한자 · 밭(はたけ),針바늘 침,腹배 복,袋자루 대,頬(頰)뺨 협,湖호수 호,胸가슴 흉,床평상 상,列벌일 렬,腰허리 요,肩어깨 견,爪손톱 조,霧안개 무,岩바위 암,砂모래 사,泥진흙 니,枝가지 지,糸(絲)실 사,枕베개 침,鍵열쇠 건,鏡거울 경,鍋노구솥 과,靴신 화,香향기 향,匂일본에서 만든 한자 · 냄새(におい),米쌀 미,豆콩 두,酢초 초,汁즙 즙,券문서 권,例법식 례,今이제 금,預맡길 예,与(與)줄 여,扱미칠 급 · 일본어에선 '다루다',浴목욕할 욕,余(餘)남을 여,編엮을 편,慌어리둥절할 황,祈빌 기,訴호소할 소,埋묻을 매,敬공경 경,得얻을 득,追쫓을 추,覆덮을 부 · 뒤집힐 복,補기울 보,贈줄 증,起일어날 기,抑누를 억,納들일 납,教(敎)가르칠 교,恐두려울 공,落떨어질 락,劣못할 렬,驚놀랄 경,衰쇠할 쇠,及미칠 급,降내릴 강,抱안을 포,輝빛날 휘,隠(隱)숨을 은,稼심을 가 · 일본어에선 '벌다',固굳을 고,傾기울 경,叶맞을 협 · 일본어에선 '이루어지다',悲슬플 비,構얽을 구,鍛쇠 불릴 단,嫌싫어할 혐,区(區)구분할 구,崩무너질 붕,暮저물 모,繰고치 켤 조,削깎을 삭,越넘을 월,焦탈 초,転(轉)구를 전,壊(壞)무너질 괴,叫부르짖을 규,刺찌를 자,誘꾈 유,覚(覺)깨달을 각,触(觸)닿을 촉,沈잠길 침,従(從)좇을 종,縛얽을 박,絞목맬 교,占점령할 점,知알 지,勧(勸)권할 권,迫핍박할 박,育기를 육,揃자를 전 · 일본어에선 '갖추다',倒넘어질 도,助도울 조,尋찾을 심,戦(戰)싸움 전,畳(疊)겹쳐질 첩,建세울 건,騙속일 편,黙(默)잠잠할 묵,溜낙숫물 류,縮줄일 축,散흩을 산,捕잡을 포,繋맬 계,潰무너질 궤,詰물을 힐 · 일본어에선 '채우다',積쌓을 적,溶녹을 용,届(屆)이를 계,整가지런할 정,飛날 비,直곧을 직,流흐를 류,眺바라볼 조,慰위로할 위,殴(毆)때릴 구,並(竝)나란히 병,鳴울 명,慣익숙할 관,握쥘 악,逃도망할 도,濁흐릴 탁,似닮을 사,抜(拔)뽑을 발,盗(盜)도둑 도,塗칠할 도,濡적실 유,願원할 원,狙엿볼 저,覗엿볼 사,伸펼 신,述펼 술,挟(挾)낄 협,貼붙일 첩,晴갤 청,拾주울 습,増(增)더할 증,含머금을 함,膨부를 팽,振떨칠 진,震우레 진,減덜 감,誇자랑할 과,干방패 간 · 일본어에선 '말리다',褒기릴 포,曲굽을 곡,磨갈 마,迎맞을 영,戻(戾)어그러질 려 · 일본어에선 '되돌리다',焼(燒)사를 소,雇품 팔 고,破깨뜨릴 파,辞(辭)말씀 사,譲(讓)사양할 양,揺(搖)흔들 요,酔(醉)취할 취,喜기쁠 희,寄부칠 기,沸끓을 비,別다를 별,渡건널 도,荒거칠 황,浅(淺)얕을 천,羨부러워할 선,美아름다울 미,薄엷을 박,偉클 위,惜아낄 석,幼어릴 유,賢어질 현,痒가려울 양,辛매울 신,厳(嚴)엄할 엄,臭냄새 취,悔뉘우칠 회,詳자세할 상,濃짙을 농,細가늘 세,塩(鹽)소금 염,仕섬길 사,酸실 산,素본디 소,鋭날카로울 예,懐(懷)품을 회,憎미울 증,鈍둔할 둔,激격할 격,恥부끄러울 치,深깊을 심,貧가난할 빈,眩어지러울 현,蒸찔 증,暑더울 서,珍보배 진,勿말 물,易쉬울 이 · 바꿀 역,柔부드러울 유,緩느릴 완,明밝을 명,鮮고울 선,新새 신,悪(惡)악할 악,懸달 현,穏(穩)편안할 온,璧구슬 벽,危위태할 위,軽(輕)가벼울 경,貴귀할 귀,楽(樂)즐길 락,豪호걸 호,華빛날 화,困곤할 곤,盛성할 성,々앞 글자를 반복하는 기호,爽시원할 상,幸다행 행,由말미암을 유,十열 십,軟연할 연,極다할 극,慎(愼)삼갈 신,敵대적할 적,贅혹 췌,沢(澤)못 택,率거느릴 솔,退물러날 퇴,屈굽힐 굴,純순수할 순,寧편안할 녕,適맞을 적,賑구휼할 진 · 일본어에선 '떠들썩하다',熱더울 열,派갈래 파,必반드시 필,複겹칠 복,思생각 사,議의논할 의,真(眞)참 진,惑미혹할 혹,秀빼어날 수,豊(豐)풍년 풍,乱(亂)어지러울 란,暴사나울 폭,静(靜)고요할 정,僅겨우 근,案책상 안,層층 층,斉(齊)가지런할 제,仮(假)거짓 가,早이를 조,次버금 차,第차례 제,実(實)열매 실,徐천천할 서,既(旣)이미 기,随(隨)따를 수,是옳을 시,絶끊을 절,抵막을 저,多많을 다,同한가지 동,突갑자기 돌,共한가지 공,何어찌 하,再두 재,滅멸할 멸,論논할 론,元으뜸 원`.split(',').forEach(e=>{const c=e[0];let r=e.slice(1),t='';if(r[0]==='('){t=r[1];r=r.slice(3)}HJ[c]={t,r}});
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const kj=k=>[...k].map(c=>HJ[c]?`<span class="kc" data-c="${esc(c)}">${esc(c)}</span>`:esc(c)).join('');
+const LK='n3vocab.v1';
+const defaults=()=>({v:1,cards:{},set:{np:30,exam:'2026-12-06',cap:true,mode:'flip',order:'rand',auto:false,pos:Object.keys(POS),seed:Math.floor(Math.random()*1e9)},log:{},upd:0});
+const normalize=r=>{const d=defaults();return {...d,...r,set:{...d.set,...(r&&r.set||{})},cards:(r&&r.cards)||{},log:(r&&r.log)||{}}};
+let S=defaults();
+try{const t=localStorage.getItem(LK);if(t)S=normalize(JSON.parse(t))}catch(e){}
+
+/* ---- days (하루는 새벽 4시에 넘어감, Anki와 같음) ---- */
+const dayNum=(d=new Date())=>Math.floor((d.getTime()-d.getTimezoneOffset()*6e4-4*36e5)/864e5);
+const dayKey=n=>new Date(n*864e5).toISOString().slice(0,10);
+const examDay=()=>{const [y,m,d]=(S.set.exam||'2026-12-06').split('-').map(Number);return Math.floor(Date.UTC(y,m-1,d)/864e5)};
+const today=()=>dayNum();
+const tlog=()=>S.log[dayKey(today())]||(S.log[dayKey(today())]={n:0,r:0});
+const capIv=iv=>{if(!S.set.cap)return iv;const dl=examDay()-today();return dl<=1?iv:Math.min(iv,Math.max(1,dl-1))};
+
+/* ---- status ---- */
+const ST={new:{t:'새 단어',c:'#9aa3b2'},learn:{t:'학습 중',c:'#c47f17'},known:{t:'익힘',c:'#22325a'},pass:{t:'패스',c:'#17805a'}};
+const st=k=>{const c=S.cards[k];if(!c||c.s===0)return'new';if(c.s===3)return'pass';if(c.s===1)return'learn';return c.iv>=4?'known':'learn'};
+
+/* ---- scheduling: 간소화한 SM-2 ---- */
+function plan(c,g){
+  const s=c?c.s:0,iv=c?c.iv:0,ef=c?c.ef:2.5;
+  if(s===2){
+    if(g===1)return{s:1,iv:1,ef:Math.max(1.3,ef-.2),re:5,lapse:1};
+    if(g===2)return{s:2,iv:Math.max(1,Math.round(iv*1.2)),ef:Math.max(1.3,ef-.15)};
+    if(g===3)return{s:2,iv:Math.max(iv+1,Math.round(iv*ef)),ef};
+    return{s:2,iv:Math.max(iv+2,Math.round(iv*ef*1.3)),ef:ef+.15};
+  }
+  if(g===1)return{s:1,iv:1,ef,re:5};
+  if(g===2)return{s:1,iv:1,ef,re:6};
+  if(g===3)return{s:2,iv:1,ef};
+  return{s:2,iv:3,ef:ef+.15};
+}
+const label=(p,w)=>p.re?'조금 뒤 다시 나와요':((w?1:capIv(p.iv))===1?'내일 다시':capIv(p.iv)+'일 뒤 복습');
+const wrongOn=d=>{const l=S.log[dayKey(d)];return (l&&l.w)||[]};
+const ydayKeys=()=>[...new Set(wrongOn(today()-1))].filter(k=>W[k]);
+
+/* ---- new word order ---- */
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rankSeed=null,RANK={};
+function rank(){if(rankSeed===S.set.seed)return RANK;const r=mulberry(S.set.seed),a=WORDS.map(w=>w.k);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}RANK={};a.forEach((k,i)=>RANK[k]=i);rankSeed=S.set.seed;return RANK}
+function newKeys(){let a=WORDS.filter(w=>S.set.pos.includes(w.p)&&st(w.k)==='new').map(w=>w.k);if(S.set.order==='rand'){const R=rank();a.sort((x,y)=>R[x]-R[y])}return a}
+function dueKeys(){const t=today();return Object.keys(S.cards).filter(k=>W[k]&&(S.cards[k].s===1||S.cards[k].s===2)&&S.cards[k].due<=t).sort((a,b)=>S.cards[a].due-S.cards[b].due||S.cards[a].iv-S.cards[b].iv)}
+const newLeft=()=>Math.max(0,S.set.np-tlog().n);
+function mix(a,b){const o=[];let i=0,j=0;while(i<a.length||j<b.length){if(j<b.length&&(i>=a.length||(j+1)/(b.length+1)<=(i+1)/(a.length+1)))o.push(b[j++]);else o.push(a[i++])}return o}
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---- romaji → hiragana ---- */
+const RK={};("a あ i い u う e え o お ka か ki き ku く ke け ko こ sa さ si し shi し su す se せ so そ ta た ti ち chi ち tu つ tsu つ te て to と na な ni に nu ぬ ne ね no の ha は hi ひ hu ふ fu ふ he へ ho ほ ma ま mi み mu む me め mo も ya や yu ゆ yo よ ra ら ri り ru る re れ ro ろ wa わ wo を ga が gi ぎ gu ぐ ge げ go ご za ざ zi じ ji じ zu ず ze ぜ zo ぞ da だ di ぢ du づ de で do ど ba ば bi び bu ぶ be べ bo ぼ pa ぱ pi ぴ pu ぷ pe ぺ po ぽ "+
+"kya きゃ kyu きゅ kyo きょ sya しゃ sha しゃ syu しゅ shu しゅ syo しょ sho しょ she しぇ tya ちゃ cha ちゃ cya ちゃ tyu ちゅ chu ちゅ cyu ちゅ tyo ちょ cho ちょ cyo ちょ che ちぇ nya にゃ nyu にゅ nyo にょ hya ひゃ hyu ひゅ hyo ひょ mya みゃ myu みゅ myo みょ rya りゃ ryu りゅ ryo りょ gya ぎゃ gyu ぎゅ gyo ぎょ ja じゃ jya じゃ zya じゃ ju じゅ jyu じゅ zyu じゅ jo じょ jyo じょ zyo じょ je じぇ bya びゃ byu びゅ byo びょ pya ぴゃ pyu ぴゅ pyo ぴょ dya ぢゃ dyu ぢゅ dyo ぢょ fa ふぁ fi ふぃ fe ふぇ fo ふぉ "+
+"xa ぁ xi ぃ xu ぅ xe ぇ xo ぉ la ぁ li ぃ lu ぅ le ぇ lo ぉ xtu っ ltu っ xtsu っ xya ゃ xyu ゅ xyo ょ lya ゃ lyu ゅ lyo ょ - ー").split(' ').forEach((v,i,a)=>{if(i%2===0)RK[v]=a[i+1]});
+function toKana(src){
+  const s=src.toLowerCase();let o='',i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(!/[a-z'\-]/.test(c)){o+=c;i++;continue}
+    if(c!=='n'&&/[bcdfghjkmpqrstvwxyz]/.test(c)&&s[i+1]===c){o+='っ';i++;continue}
+    if(c==='n'){const nx=s[i+1];
+      if(nx===undefined){o+='ん';i++;continue}
+      if(nx==="'"){o+='ん';i+=2;continue}
+      if(nx==='n'){o+='ん';i+=/[aiueoy]/.test(s[i+2]||'')?1:2;continue}
+      if(!/[aiueoy]/.test(nx)){o+='ん';i++;continue}}
+    let hit=false;for(let L=4;L>=1;L--){const t=RK[s.substr(i,L)];if(t){o+=t;i+=L;hit=true;break}}
+    if(!hit){o+=c;i++}
+  }
+  return o;
+}
+const toHira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const normAns=s=>toHira(toKana(s.trim())).replace(/[\s・.,]/g,'');
+
+/* ---- save (이 브라우저 + 계정) ---- */
+let rref=null,writing=false,dirty=false,tmr=0;
+const setSync=t=>{$('sync').textContent=t};
+function save(){S.upd=Date.now();try{localStorage.setItem(LK,JSON.stringify(S))}catch(e){}if(rref){clearTimeout(tmr);tmr=setTimeout(push,1200)}}
+async function push(){
+  if(!rref)return;if(writing){dirty=true;return}writing=true;
+  try{await rref.set({payload:JSON.stringify(S),upd:S.upd});setSync('학습 기록이 계정에 저장됨 · 다음에 열어도 그대로예요')}
+  catch(e){const code=e&&e.code;setSync(code==='quota_exceeded'?'계정 저장 공간이 가득 차서 이 브라우저에만 저장 중':'이 브라우저에 저장됨 (계정 저장은 잠시 실패)');if(code==='invalid_argument'||code==='revoked')rref=null}
+  writing=false;if(dirty){dirty=false;push()}
+}
+
+/* ---- TTS ---- */
+let tts=null;
+function speak(text){
+  const fb=()=>{try{if(!('speechSynthesis' in window))return;const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}};
+  if(tts)tts.speak(text,{language:'ja'}).catch(e=>{if(!e||e.code!=='viewer_stopped')fb()});else fb();
+}
+
+/* ---- header ---- */
+function renderHeader(){
+  const dl=examDay()-today();
+  $('dday').innerHTML=dl>0?`시험까지 <b>D-${dl}</b>`:dl===0?'<b>오늘 시험!</b> 화이팅':'시험 끝 · 수고했어요';
+  let n=0,d=today();if(!act(d))d--;while(act(d)){n++;d--}
+  $('streak').innerHTML=`연속 학습 <b>${n}일</b>`;
+}
+const act=d=>{const l=S.log[dayKey(d)];return l&&(l.n+l.r)>0};
+
+/* ---- home ---- */
+function renderHome(){
+  renderHeader();
+  const due=dueKeys().length,nl=Math.min(newLeft(),newKeys().length),dl=examDay()-today();
+  $('nDue').textContent=due;$('nNew').textContent=nl;
+  const left=newKeys().length;
+  $('hsub').textContent=dl>0&&left>0?`아직 안 본 단어 ${left}개 · 하루 ${Math.ceil(left/dl)}개씩 보면 시험 전에 전부 볼 수 있어요`:left===0?'모든 단어를 한 번씩 봤어요. 이제 복습으로 굳히세요.':'';
+  const b=$('bStart');
+  if(due+nl>0){b.textContent=`학습 시작 · ${due+nl}장`;b.disabled=false}else{b.textContent='오늘 할 일 끝! 아래에서 더 할 수 있어요';b.disabled=true}
+  $('bMore').disabled=left===0;
+  const yd=ydayKeys().length;$('bYday').disabled=!yd;$('bYday').textContent=yd?`어제 모른 단어 ${yd}개 다시 보기`:'어제 모른 단어 없음';
+  const cnt={new:0,learn:0,known:0,pass:0};WORDS.forEach(w=>cnt[st(w.k)]++);
+  $('totalTxt').textContent=`전체 ${WORDS.length}단어`;
+  $('pbar').innerHTML=['pass','known','learn','new'].map(s=>`<i style="width:${cnt[s]/WORDS.length*100}%;background:${ST[s].c}" title="${ST[s].t} ${cnt[s]}"></i>`).join('');
+  $('plegend').innerHTML=['pass','known','learn','new'].map(s=>`<span style="--c:${ST[s].c}">${ST[s].t} ${cnt[s]}</span>`).join('');
+  const days=[...Array(7)].map((_,i)=>today()-6+i),vals=days.map(d=>{const l=S.log[dayKey(d)];return l?l.n+l.r:0}),mx=Math.max(10,...vals);
+  $('week').innerHTML=days.map((d,i)=>`<div><b>${vals[i]||''}</b><i style="height:${vals[i]/mx*80}%"></i>${i===6?'오늘':dayKey(d).slice(5).replace('-','/')}</div>`).join('');
+}
+
+/* ---- session ---- */
+let sess={on:false};
+function start(kind){
+  let q=[],practice=false,title='';
+  if(kind==='today'){const y=new Set(ydayKeys()),d=dueKeys();q=[...d.filter(k=>y.has(k)),...mix(d.filter(k=>!y.has(k)),newKeys().slice(0,newLeft()))]}
+  else if(kind==='yday'){practice=true;q=shuffle(ydayKeys())}
+  else if(kind==='more'){q=newKeys().slice(0,20)}
+  else if(kind==='weak'){practice=true;q=shuffle(Object.keys(S.cards).filter(k=>W[k]&&(S.cards[k].s===1||S.cards[k].s===2)).sort((a,b)=>(S.cards[b].l-S.cards[a].l)||(S.cards[a].iv-S.cards[b].iv)).slice(0,40))}
+  else if(kind==='again'){practice=true;q=shuffle([...sess.wrong])}
+  if(!q.length){$('hsub').textContent=kind==='weak'?'아직 공부한 단어가 없어요. 먼저 새 단어부터 시작하세요.':'볼 카드가 없어요.';return}
+  sess={on:true,kind,practice,q,total:q.length,fin:new Set(),wrong:new Set(),hit:0,count:new Set(),flipped:false,typed:null};
+  $('home').hidden=true;$('fin').hidden=true;$('sess').hidden=false;show();
+}
+function show(){
+  if(!sess.q.length)return finish();
+  const k=sess.q[0],w=W[k],c=S.cards[k];sess.flipped=false;sess.typed=null;
+  const ck=$('ck');ck.innerHTML=kj(k);hidePop();ck.style.setProperty('--len',Math.max(2,[...k].length));
+  const isNew=!c||c.s===0;const tag=$('ctag');tag.textContent=(isNew&&!sess.practice?'NEW · ':'')+POS[w.p];tag.className='ctag'+(isNew&&!sess.practice?' new':'');
+  $('cback').hidden=true;$('cback').classList.remove('show');$('gActs').hidden=true;$('fActs').hidden=false;
+  $('bPass').hidden=!(isNew&&!sess.practice);
+  const typing=S.set.mode==='type';$('ctype').hidden=!typing;
+  $('bFlip').innerHTML=typing?'정답 확인<kbd>Enter</kbd>':'정답 보기<kbd>Space</kbd>';
+  if(typing){const i=$('cin');i.value='';i.disabled=false;$('cprev').textContent='';$('cver').textContent='';$('cver').className='verdict';setTimeout(()=>i.focus(),0)}
+  document.querySelectorAll('#gActs button').forEach(b=>b.classList.remove('sug'));
+  $('sprog').style.width=(sess.fin.size/sess.total*100)+'%';
+  $('sleft').textContent=`남은 카드 ${sess.q.length}`;
+}
+function flip(){
+  if(sess.flipped)return;const k=sess.q[0],w=W[k],c=S.cards[k];
+  sess.flipped=true;$('cr').textContent=w.r.split('・').join(' · ');$('cm').textContent=w.m;
+  $('cback').hidden=false;$('cback').classList.add('show');$('fActs').hidden=true;$('gActs').hidden=false;
+  for(const g of [1,3])$('p'+g).textContent=sess.practice?(g===1?'조금 뒤 다시 나와요':'통과'):label(plan(c,g),sess.wrong.has(k));
+  if(S.set.mode==='type'){
+    const v=$('cin').value,ok=v.trim()&&w.r.split('・').includes(normAns(v));$('cin').disabled=true;
+    const vr=$('cver');vr.textContent=!v.trim()?'입력 없이 정답 확인':ok?'정답!':'오답 — 입력: '+normAns(v);vr.className='verdict '+(ok?'ok':'bad');
+    sess.typed=ok?3:1;document.querySelector(`#gActs [data-g="${sess.typed}"]`).classList.add('sug');
+  }
+  if(S.set.auto)speak(w.r.split('・')[0]);
+}
+function grade(g){
+  if(!sess.flipped)return;const k=sess.q.shift();
+  const re=n=>sess.q.splice(Math.min(n,sess.q.length),0,k);
+  if(g===1){sess.wrong.add(k);const L=tlog();L.w=L.w||[];if(!L.w.includes(k))L.w.push(k)}
+  if(sess.practice){
+    if(g===1)re(5);else{sess.fin.add(k);if(!sess.wrong.has(k))sess.hit++}
+    if(!sess.count.has(k)){sess.count.add(k);tlog().r++}
+    save();return show();
+  }
+  let c=S.cards[k];if(!c)c=S.cards[k]={s:0,iv:0,ef:2.5,due:0,r:0,l:0};
+  if(!sess.count.has(k)){sess.count.add(k);if(c.s===0)tlog().n++;else tlog().r++}
+  const p=plan(c,g);c.s=p.s;c.iv=p.iv;c.ef=p.ef;c.r++;if(p.lapse)c.l++;
+  if(p.re){c.due=today();re(p.re)}else{if(sess.wrong.has(k))c.iv=1;c.due=today()+capIv(c.iv);sess.fin.add(k);if(!sess.wrong.has(k))sess.hit++}
+  save();show();
+}
+function pass(){
+  if(sess.practice)return;const k=sess.q[0],c=S.cards[k];if(c&&c.s!==0)return;
+  sess.q.shift();S.cards[k]={s:3,iv:0,ef:2.5,due:0,r:0,l:0};sess.fin.add(k);
+  if(!sess.count.has(k)){sess.count.add(k);tlog().n++}
+  save();show();
+}
+function finish(){
+  sess.on=false;$('sess').hidden=true;$('fin').hidden=false;
+  const seen=sess.count.size,wr=[...sess.wrong];
+  $('finSub').textContent=sess.practice?'집중 복습 완료':'오늘의 카드 완료';
+  $('finScore').textContent=seen?`${seen}장`:'0장';
+  $('finTxt').textContent=wr.length?`‘몰라요’를 누른 단어 ${wr.length}개 — 내일 학습에서 가장 먼저 다시 나와요.`:seen?'헷갈린 단어 없이 끝냈어요.':'';
+  $('finList').innerHTML=wr.map(k=>`<li><span class="k" lang="ja">${kj(k)}</span><span class="r jp" lang="ja">${esc(W[k].r)}</span><span class="m">${esc(W[k].m)}</span></li>`).join('');
+  $('bAgain').hidden=!wr.length;
+}
+function home(){sess.on=false;$('sess').hidden=true;$('fin').hidden=true;$('home').hidden=false;renderHome()}
+
+/* ---- words ---- */
+let fSt='',sheet=false;
+function renderWords(){
+  const q=$('q').value.trim().toLowerCase(),p=$('qpos').value,qk=q?toHira(toKana(q)):'';
+  const cnt={'':0,new:0,learn:0,known:0,pass:0};
+  const list=WORDS.filter(w=>{if(p&&w.p!==p)return false;if(q&&!(w.k.includes(q)||w.r.includes(qk)||w.m.toLowerCase().includes(q)))return false;cnt['']++;cnt[st(w.k)]++;return!fSt||st(w.k)===fSt});
+  $('qst').innerHTML=[['','전체'],['new','새 단어'],['learn','학습 중'],['known','익힘'],['pass','패스']].map(([v,t])=>`<button data-st="${v}" aria-pressed="${fSt===v}">${t} ${cnt[v]}</button>`).join('');
+  $('qcount').textContent=`${list.length}개 표시`;
+  const t=today();
+  $('wlist').innerHTML=list.map(w=>{const s=st(w.k),c=S.cards[w.k];
+    const nx=c&&(c.s===1||c.s===2)?(c.due<=t?'오늘 복습':`${c.due-t}일 뒤 복습`):'';
+    return `<li data-k="${esc(w.k)}"><span class="k" lang="ja">${kj(w.k)}</span><span class="rm"><span class="r jp" lang="ja">${esc(w.r.split('・').join(' · '))}</span><span class="m">${esc(w.m)}</span></span><span class="ops">${s==='pass'?'<button data-op="unpass">패스 해제</button>':s==='new'?'<button data-op="pass">패스</button>':'<button data-op="reset">처음부터</button>'}</span><span class="meta"><span class="badge" style="--c:${ST[s].c}">${ST[s].t}</span>${POS[w.p]}${nx?' · '+nx:''}${c&&c.l?' · 틀린 횟수 '+c.l:''}</span></li>`}).join('');
+}
+
+/* ---- settings ---- */
+function renderSet(){
+  $('sNp').value=String(S.set.np);$('sMode').value=S.set.mode;$('sExam').value=S.set.exam;$('sCap').checked=!!S.set.cap;$('sOrder').value=S.set.order;$('sAuto').checked=!!S.set.auto;
+  $('sPos').innerHTML=Object.entries(POS).map(([k,t])=>`<label><input type="checkbox" value="${k}" ${S.set.pos.includes(k)?'checked':''}>${t} (${WORDS.filter(w=>w.p===k).length})</label>`).join('');
+}
+
+/* ---- routing ---- */
+const VIEWS=['study','words','setup'];
+function route(){
+  const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):'study';
+  VIEWS.forEach(x=>{$('v-'+x).hidden=x!==v});
+  document.querySelectorAll('nav a').forEach(a=>a.toggleAttribute('aria-current',a.dataset.v===v));
+  if(v==='study'&&!sess.on&&$('fin').hidden)renderHome();
+  if(v==='words')renderWords();if(v==='setup')renderSet();renderHeader();
+}
+function renderAll(){route()}
+
+/* ---- events ---- */
+$('qpos').innerHTML+=Object.entries(POS).map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+$('bStart').onclick=()=>start('today');$('bMore').onclick=()=>start('more');$('bWeak').onclick=()=>start('weak');$('bYday').onclick=()=>start('yday');
+$('bAgain').onclick=()=>start('again');$('bHome').onclick=home;$('bQuit').onclick=finish;
+$('bFlip').onclick=flip;$('bPass').onclick=pass;
+$('gActs').onclick=e=>{const b=e.target.closest('[data-g]');if(b)grade(+b.dataset.g)};
+$('bSpk').onclick=()=>{const k=sess.q[0];if(k)speak(W[k].r.split('・')[0])};
+$('cin').addEventListener('input',e=>{const v=e.target.value;$('cprev').textContent=/[a-z]/i.test(v)?'→ '+toKana(v):''});
+document.addEventListener('keydown',e=>{
+  if(!sess.on||$('v-study').hidden||e.ctrlKey||e.metaKey||e.altKey||e.isComposing)return;
+  const inInput=e.target===$('cin');
+  if(!sess.flipped){
+    if(e.key==='Enter'||(e.key===' '&&!inInput)){e.preventDefault();flip()}
+    else if(!inInput&&(e.key==='k'||e.key==='K')&&!$('bPass').hidden){e.preventDefault();pass()}
+    return;
+  }
+  if(e.key==='Enter'&&sess.typed){e.preventDefault();grade(sess.typed)}
+  else if(e.key===' '&&!sess.typed){e.preventDefault();grade(3)}
+  else if(e.key==='1'){e.preventDefault();grade(1)}
+  else if(e.key==='2'){e.preventDefault();grade(3)}
+  else if(e.key==='r'||e.key==='R'){const k=sess.q[0];if(k)speak(W[k].r.split('・')[0])}
+});
+$('q').addEventListener('input',renderWords);$('qpos').onchange=renderWords;
+$('qst').onclick=e=>{const b=e.target.closest('[data-st]');if(b){fSt=b.dataset.st;renderWords()}};
+$('bSheet').onclick=()=>{sheet=!sheet;$('bSheet').setAttribute('aria-pressed',sheet);$('bSheet').classList.toggle('primary',sheet);$('wlist').classList.toggle('sheet',sheet)};
+$('wlist').onclick=e=>{
+  if(e.target.closest('.kc'))return;const li=e.target.closest('li');if(!li)return;const k=li.dataset.k,op=e.target.closest('[data-op]');
+  if(!op){if(sheet)li.querySelector('.rm').classList.toggle('open');return}
+  const o=op.dataset.op;
+  if(o==='pass')S.cards[k]={s:3,iv:0,ef:2.5,due:0,r:0,l:0};else delete S.cards[k];
+  save();renderWords();
+};
+const bindSet=(id,fn)=>$(id).addEventListener('change',e=>{fn(e.target);save();renderHeader()});
+bindSet('sNp',t=>S.set.np=+t.value);bindSet('sMode',t=>S.set.mode=t.value);bindSet('sExam',t=>{if(t.value)S.set.exam=t.value});
+bindSet('sCap',t=>S.set.cap=t.checked);bindSet('sOrder',t=>S.set.order=t.value);bindSet('sAuto',t=>S.set.auto=t.checked);
+$('sPos').addEventListener('change',()=>{const v=[...$('sPos').querySelectorAll('input:checked')].map(i=>i.value);if(!v.length){renderSet();return}S.set.pos=v;save()});
+const msg=t=>{$('setMsg').textContent=t};
+$('bCopy').onclick=async()=>{const t=JSON.stringify(S);$('bk').value=t;try{await navigator.clipboard.writeText(t);msg('기록을 복사했어요. 메모장 등에 붙여넣어 보관하세요.')}catch(e){$('bk').select();msg('아래 칸의 내용을 전체 선택해 복사하세요 (Ctrl+C).')}};
+let armImp=0,armRst=0;
+$('bImport').onclick=()=>{
+  let r;try{r=JSON.parse($('bk').value);if(!r||typeof r.cards!=='object')throw 0}catch(e){msg('붙여넣은 내용이 올바른 기록이 아니에요.');return}
+  if(!armImp){armImp=1;$('bImport').textContent='지금 기록을 덮어써요 — 한 번 더 누르면 불러오기';setTimeout(()=>{armImp=0;$('bImport').textContent='붙여넣은 기록 불러오기'},5000);return}
+  armImp=0;S=normalize(r);save();renderSet();renderHeader();$('bImport').textContent='붙여넣은 기록 불러오기';msg('기록을 불러왔어요.');
+};
+$('bReset').onclick=()=>{
+  if(!armRst){armRst=1;$('bReset').textContent='되돌릴 수 없어요 — 한 번 더 누르면 전부 삭제';setTimeout(()=>{armRst=0;$('bReset').textContent='모든 학습 기록 지우기'},5000);return}
+  armRst=0;const set=S.set;S=defaults();S.set=set;save();$('bReset').textContent='모든 학습 기록 지우기';msg('학습 기록을 모두 지웠어요. 설정은 그대로예요.');renderHeader();
+};
+const pop=$('pop');let popOn=null;
+function hidePop(){pop.hidden=true;if(popOn)popOn.classList.remove('on');popOn=null}
+function showPop(el){
+  const c=el.dataset.c,d=HJ[c];if(!d)return;if(popOn===el){hidePop();return}hidePop();
+  pop.innerHTML=`<span class="pc" lang="ja">${esc(c)}</span><span><b>${esc(d.r)}</b>${d.t?`<small>한국 정자 <span lang="ko">${esc(d.t)}</span></small>`:''}</span>`;
+  pop.hidden=false;popOn=el;el.classList.add('on');
+  const r=el.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight;
+  let x=r.left+r.width/2-pw/2;x=Math.max(8,Math.min(innerWidth-pw-8,x));
+  let y=r.top-ph-10;if(y<8)y=r.bottom+10;
+  pop.style.left=x+'px';pop.style.top=y+'px';
+}
+document.addEventListener('click',e=>{const t=e.target.closest('.kc');if(t)showPop(t);else if(!e.target.closest('#pop'))hidePop()});
+window.addEventListener('scroll',hidePop,{passive:true});window.addEventListener('resize',hidePop);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hidePop()});
+window.addEventListener('hashchange',()=>{hidePop();route()});
+route();
+
+/* ---- account storage & voice (가능할 때만 켜짐) ---- */
+(async()=>{
+  const c=window.claude;if(!c||typeof c.use!=='function'){setSync('학습 기록은 이 휴대폰에 자동 저장돼요');try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});return}
+  c.use('tts').then(t=>{tts=t||null}).catch(()=>{});
+  try{
+    const [db,user]=await Promise.all([c.use('db'),c.use('user')]);
+    if(!db||!user){setSync('이 브라우저에 저장 중');return}
+    const uid=await user.id();if(!uid){setSync('이 브라우저에 저장 중');return}
+    const ref=db.doc('data/users/'+uid+'/progress');
+    const snap=await Promise.race([ref.get(),new Promise((_,rj)=>setTimeout(()=>rj({code:'timeout'}),10000))]);
+    rref=ref;
+    if(snap.exists){const d=snap.data()||{};
+      if(typeof d.payload==='string'&&(d.upd||0)>(S.upd||0)){S=normalize(JSON.parse(d.payload));try{localStorage.setItem(LK,JSON.stringify(S))}catch(e){}if(!sess.on)route();}
+      else if((S.upd||0)>(d.upd||0))push();
+    }else if(S.upd)push();
+    setSync('학습 기록이 계정에 저장됨 · 다음에 열어도 그대로예요');
+  }catch(e){setSync('이 브라우저에 저장 중 (계정 저장에 연결하지 못함)')}
+})();
+}
+</script>
+</body>
+</html>
