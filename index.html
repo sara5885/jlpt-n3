@@ -168,7 +168,7 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
       <ul>
         <li><b>카드 앞면엔 한자만.</b> 뜻과 읽기를 떠올린 뒤 뒤집어서 ‘몰라요 / 알아요’ 중 하나만 누르면 돼요.</li>
         <li><b>처음 보는 단어가 이미 아는 단어면 ‘패스’.</b> 다시 나오지 않아요. (Memrise · Quizlet 방식)</li>
-        <li><b>‘몰라요’를 누른 카드는 몇 장 뒤 또 나와요.</b> 맞힐 때까지 이번 학습에서 반복돼요.</li>
+        <li><b>‘몰라요’를 누른 카드는 약 15장 뒤 다시 나와요(설정에서 바꿀 수 있어요).</b> 맞힐 때까지 이번 학습에서 반복돼요.</li>
         <li><b>하루에 한 번이라도 ‘몰라요’를 누른 단어는 다음 날 꼭 다시 나와요.</b> 다음 날 학습에서 가장 먼저 나오고, ‘어제 모른 단어’ 버튼으로 따로 볼 수도 있어요.</li>
         <li><b>맞힌 카드는 1일 → 3일 → 7일…처럼 간격을 늘려 다시 나와요.</b> 시험일 전에 모두 한 번 더 보도록 간격을 시험일에 맞춰 줄여요.</li>
         <li><b>설정에서 ‘읽기 입력’ 모드</b>를 켜면 읽는 법을 직접 입력해 채점해요. 로마자(kanji → かんじ)나 일본어 자판 둘 다 돼요. (WaniKani 방식)</li>
@@ -229,6 +229,8 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
   <h2>설정 · 기록</h2>
   <div class="field"><label for="sNp">하루 새 단어 수<span class="muted">시험까지 남은 날로 나눠 정하면 좋아요</span></label>
     <select id="sNp"><option>10</option><option>20</option><option>30</option><option>50</option><option>80</option><option>100</option><option>150</option></select></div>
+  <div class="field"><label for="sGap">모른 단어가 다시 나오는 때<span class="muted">처음엔 모르는 단어가 많으니 넉넉하게 두는 게 좋아요</span></label>
+    <select id="sGap"><option value="5">약 5장 뒤</option><option value="10">약 10장 뒤</option><option value="15">약 15장 뒤</option><option value="25">약 25장 뒤</option><option value="40">약 40장 뒤</option><option value="999">이번 학습 맨 끝</option></select></div>
   <div class="field"><label for="sMode">학습 모드<span class="muted">자가 채점은 빠르고, 읽기 입력은 정확해요</span></label>
     <select id="sMode"><option value="flip">자가 채점 (카드 뒤집기)</option><option value="type">읽기 입력</option></select></div>
   <div class="field"><label for="sExam">시험일<span class="muted">2026년 12월 JLPT는 12월 6일(일)</span></label><input type="date" id="sExam"></div>
@@ -1160,7 +1162,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const kj=k=>[...k].map(c=>HJ[c]?`<span class="kc" data-c="${esc(c)}">${esc(c)}</span>`:esc(c)).join('');
 const LK='n3vocab.v1';
-const defaults=()=>({v:1,cards:{},set:{np:30,exam:'2026-12-06',cap:true,mode:'flip',order:'rand',auto:false,pos:Object.keys(POS),seed:Math.floor(Math.random()*1e9)},log:{},upd:0});
+const defaults=()=>({v:1,cards:{},set:{np:30,exam:'2026-12-06',cap:true,mode:'flip',order:'rand',auto:false,gap:15,pos:Object.keys(POS),seed:Math.floor(Math.random()*1e9)},log:{},upd:0});
 const normalize=r=>{const d=defaults();return {...d,...r,set:{...d.set,...(r&&r.set||{})},cards:(r&&r.cards)||{},log:(r&&r.log)||{}}};
 let S=defaults();
 try{const t=localStorage.getItem(LK);if(t)S=normalize(JSON.parse(t))}catch(e){}
@@ -1191,7 +1193,9 @@ function plan(c,g){
   if(g===3)return{s:2,iv:1,ef};
   return{s:2,iv:3,ef:ef+.15};
 }
-const label=(p,w)=>p.re?'조금 뒤 다시 나와요':((w?1:capIv(p.iv))===1?'내일 다시':capIv(p.iv)+'일 뒤 복습');
+const gapN=()=>+S.set.gap||15;
+const gapTxt=()=>gapN()>=999?'이번 학습 맨 끝에 다시':`약 ${gapN()}장 뒤 다시`;
+const label=(p,w)=>p.re?gapTxt():((w?1:capIv(p.iv))===1?'내일 다시':capIv(p.iv)+'일 뒤 복습');
 const wrongOn=d=>{const l=S.log[dayKey(d)];return (l&&l.w)||[]};
 const ydayKeys=()=>[...new Set(wrongOn(today()-1))].filter(k=>W[k]);
 
@@ -1305,7 +1309,7 @@ function flip(){
   if(sess.flipped)return;const k=sess.q[0],w=W[k],c=S.cards[k];
   sess.flipped=true;$('cr').textContent=w.r.split('・').join(' · ');$('cm').textContent=w.m;
   $('cback').hidden=false;$('cback').classList.add('show');$('fActs').hidden=true;$('gActs').hidden=false;
-  for(const g of [1,3])$('p'+g).textContent=sess.practice?(g===1?'조금 뒤 다시 나와요':'통과'):label(plan(c,g),sess.wrong.has(k));
+  for(const g of [1,3])$('p'+g).textContent=sess.practice?(g===1?gapTxt():'통과'):label(plan(c,g),sess.wrong.has(k));
   if(S.set.mode==='type'){
     const v=$('cin').value,ok=v.trim()&&w.r.split('・').includes(normAns(v));$('cin').disabled=true;
     const vr=$('cver');vr.textContent=!v.trim()?'입력 없이 정답 확인':ok?'정답!':'오답 — 입력: '+normAns(v);vr.className='verdict '+(ok?'ok':'bad');
@@ -1318,14 +1322,14 @@ function grade(g){
   const re=n=>sess.q.splice(Math.min(n,sess.q.length),0,k);
   if(g===1){sess.wrong.add(k);const L=tlog();L.w=L.w||[];if(!L.w.includes(k))L.w.push(k)}
   if(sess.practice){
-    if(g===1)re(5);else{sess.fin.add(k);if(!sess.wrong.has(k))sess.hit++}
+    if(g===1)re(gapN());else{sess.fin.add(k);if(!sess.wrong.has(k))sess.hit++}
     if(!sess.count.has(k)){sess.count.add(k);tlog().r++}
     save();return show();
   }
   let c=S.cards[k];if(!c)c=S.cards[k]={s:0,iv:0,ef:2.5,due:0,r:0,l:0};
   if(!sess.count.has(k)){sess.count.add(k);if(c.s===0)tlog().n++;else tlog().r++}
   const p=plan(c,g);c.s=p.s;c.iv=p.iv;c.ef=p.ef;c.r++;if(p.lapse)c.l++;
-  if(p.re){c.due=today();re(p.re)}else{if(sess.wrong.has(k))c.iv=1;c.due=today()+capIv(c.iv);sess.fin.add(k);if(!sess.wrong.has(k))sess.hit++}
+  if(p.re){c.due=today();re(gapN())}else{if(sess.wrong.has(k))c.iv=1;c.due=today()+capIv(c.iv);sess.fin.add(k);if(!sess.wrong.has(k))sess.hit++}
   save();show();
 }
 function pass(){
@@ -1361,7 +1365,7 @@ function renderWords(){
 
 /* ---- settings ---- */
 function renderSet(){
-  $('sNp').value=String(S.set.np);$('sMode').value=S.set.mode;$('sExam').value=S.set.exam;$('sCap').checked=!!S.set.cap;$('sOrder').value=S.set.order;$('sAuto').checked=!!S.set.auto;
+  $('sNp').value=String(S.set.np);$('sGap').value=String(gapN());$('sMode').value=S.set.mode;$('sExam').value=S.set.exam;$('sCap').checked=!!S.set.cap;$('sOrder').value=S.set.order;$('sAuto').checked=!!S.set.auto;
   $('sPos').innerHTML=Object.entries(POS).map(([k,t])=>`<label><input type="checkbox" value="${k}" ${S.set.pos.includes(k)?'checked':''}>${t} (${WORDS.filter(w=>w.p===k).length})</label>`).join('');
 }
 
@@ -1409,7 +1413,7 @@ $('wlist').onclick=e=>{
   save();renderWords();
 };
 const bindSet=(id,fn)=>$(id).addEventListener('change',e=>{fn(e.target);save();renderHeader()});
-bindSet('sNp',t=>S.set.np=+t.value);bindSet('sMode',t=>S.set.mode=t.value);bindSet('sExam',t=>{if(t.value)S.set.exam=t.value});
+bindSet('sNp',t=>S.set.np=+t.value);bindSet('sGap',t=>S.set.gap=+t.value);bindSet('sMode',t=>S.set.mode=t.value);bindSet('sExam',t=>{if(t.value)S.set.exam=t.value});
 bindSet('sCap',t=>S.set.cap=t.checked);bindSet('sOrder',t=>S.set.order=t.value);bindSet('sAuto',t=>S.set.auto=t.checked);
 $('sPos').addEventListener('change',()=>{const v=[...$('sPos').querySelectorAll('input:checked')].map(i=>i.value);if(!v.length){renderSet();return}S.set.pos=v;save()});
 const msg=t=>{$('setMsg').textContent=t};
