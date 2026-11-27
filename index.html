@@ -124,6 +124,10 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
 .kc{cursor:pointer;border-radius:.12em;transition:background .15s}.kc:hover{background:var(--soft)}.kc.on{background:light-dark(#fde3de,#3a2220);color:var(--shu)}
 #pop{position:fixed;z-index:50;display:flex;gap:12px;align-items:center;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);max-width:min(320px,calc(100vw - 16px));font-size:15px;line-height:1.35}
 #pop .pc{font:800 34px/1 "Shippori Mincho",serif}#pop b{display:block;font-weight:700}#pop small{display:block;font-size:13px;opacity:.75;margin-top:2px}
+.cstar{position:absolute;right:12px;bottom:12px}
+.stb{min-height:40px;width:40px;padding:0;border:0;background:none;color:var(--muted);display:inline-grid;place-items:center;vertical-align:middle;border-radius:50%}
+.stb svg{width:24px;height:24px;fill:none;stroke:currentColor}.stb[aria-pressed=true]{color:#e0a100}.stb[aria-pressed=true] svg{fill:currentColor}
+.list .ops .stb{min-height:36px;width:36px}
 .hint{font-size:12px;color:var(--muted);margin-top:10px}
 @media (hover:none){kbd{display:none}}
 .sync{font-size:12px;color:var(--muted);text-align:center;margin-top:36px}
@@ -157,6 +161,7 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
       <button id="bMore">새 단어 20개 더</button>
       <button id="bWeak">약한 단어 집중 복습</button>
       <button id="bYday">어제 모른 단어 다시 보기</button>
+      <button id="bStarS">저장한 단어 보기</button>
     </div>
     <h3>전체 진도 <span class="muted small" id="totalTxt"></span></h3>
     <div class="bar" id="pbar"></div>
@@ -168,6 +173,7 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
       <ul>
         <li><b>카드 앞면엔 한자만.</b> 뜻과 읽기를 떠올린 뒤 뒤집어서 ‘몰라요 / 알아요’ 중 하나만 누르면 돼요.</li>
         <li><b>처음 보는 단어가 이미 아는 단어면 ‘패스’.</b> 다시 나오지 않아요. (Memrise · Quizlet 방식)</li>
+        <li><b>카드 오른쪽 아래 ☆를 누르면 단어가 저장돼요.</b> 알고 모르고와 상관없이 ‘저장한 단어 보기’나 단어 목록의 ‘★ 저장한 단어’에서 따로 볼 수 있어요.</li>
         <li><b>‘몰라요’를 누른 카드는 약 15장 뒤 다시 나와요(설정에서 바꿀 수 있어요).</b> 맞힐 때까지 이번 학습에서 반복돼요.</li>
         <li><b>하루에 한 번이라도 ‘몰라요’를 누른 단어는 다음 날 꼭 다시 나와요.</b> 다음 날 학습에서 가장 먼저 나오고, ‘어제 모른 단어’ 버튼으로 따로 볼 수도 있어요.</li>
         <li><b>맞힌 카드는 1일 → 3일 → 7일…처럼 간격을 늘려 다시 나와요.</b> 시험일 전에 모두 한 번 더 보도록 간격을 시험일에 맞춰 줄여요.</li>
@@ -181,6 +187,7 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
     <article class="card" id="card">
       <span class="hole" aria-hidden="true"></span>
       <span class="ctag" id="ctag"></span>
+      <span class="cstar" id="cstar"></span>
       <div class="kanji" id="ck" lang="ja"></div>
       <div class="typebox" id="ctype" hidden>
         <input id="cin" lang="ja" placeholder="읽는 법 입력 (예: kanji 또는 かんじ)" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="읽는 법 입력">
@@ -1161,9 +1168,11 @@ const HJ={};`安편안 안,心마음 심,以써 이,外바깥 외,意뜻 의,見
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const kj=k=>[...k].map(c=>HJ[c]?`<span class="kc" data-c="${esc(c)}">${esc(c)}</span>`:esc(c)).join('');
+const SV='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6-4.5-4.2 6.1-.8z"/></svg>';
+const starBtn=k=>`<button class="stb" data-star="${esc(k)}" aria-pressed="${!!S.star[k]}" aria-label="단어 저장" title="저장">${SV}</button>`;
 const LK='n3vocab.v1';
-const defaults=()=>({v:1,cards:{},set:{np:30,exam:'2026-12-06',cap:true,mode:'flip',order:'rand',auto:false,gap:15,pos:Object.keys(POS),seed:Math.floor(Math.random()*1e9)},log:{},upd:0});
-const normalize=r=>{const d=defaults();return {...d,...r,set:{...d.set,...(r&&r.set||{})},cards:(r&&r.cards)||{},log:(r&&r.log)||{}}};
+const defaults=()=>({v:1,cards:{},set:{np:30,exam:'2026-12-06',cap:true,mode:'flip',order:'rand',auto:false,gap:15,pos:Object.keys(POS),seed:Math.floor(Math.random()*1e9)},log:{},star:{},upd:0});
+const normalize=r=>{const d=defaults();return {...d,...r,set:{...d.set,...(r&&r.set||{})},cards:(r&&r.cards)||{},log:(r&&r.log)||{},star:(r&&r.star)||{}}};
 let S=defaults();
 try{const t=localStorage.getItem(LK);if(t)S=normalize(JSON.parse(t))}catch(e){}
 
@@ -1269,6 +1278,7 @@ function renderHome(){
   const b=$('bStart');
   if(due+nl>0){b.textContent=`학습 시작 · ${due+nl}장`;b.disabled=false}else{b.textContent='오늘 할 일 끝! 아래에서 더 할 수 있어요';b.disabled=true}
   $('bMore').disabled=left===0;
+  const sn=Object.keys(S.star).filter(k=>W[k]).length;$('bStarS').disabled=!sn;$('bStarS').textContent=sn?`저장한 단어 ${sn}개 보기`:'저장한 단어 없음 (카드의 ☆로 저장)';
   const yd=ydayKeys().length;$('bYday').disabled=!yd;$('bYday').textContent=yd?`어제 모른 단어 ${yd}개 다시 보기`:'어제 모른 단어 없음';
   const cnt={new:0,learn:0,known:0,pass:0};WORDS.forEach(w=>cnt[st(w.k)]++);
   $('totalTxt').textContent=`전체 ${WORDS.length}단어`;
@@ -1284,6 +1294,7 @@ function start(kind){
   let q=[],practice=false,title='';
   if(kind==='today'){const y=new Set(ydayKeys()),d=dueKeys();q=[...d.filter(k=>y.has(k)),...mix(d.filter(k=>!y.has(k)),newKeys().slice(0,newLeft()))]}
   else if(kind==='yday'){practice=true;q=shuffle(ydayKeys())}
+  else if(kind==='star'){practice=true;q=shuffle(Object.keys(S.star).filter(k=>W[k]))}
   else if(kind==='more'){q=newKeys().slice(0,20)}
   else if(kind==='weak'){practice=true;q=shuffle(Object.keys(S.cards).filter(k=>W[k]&&(S.cards[k].s===1||S.cards[k].s===2)).sort((a,b)=>(S.cards[b].l-S.cards[a].l)||(S.cards[a].iv-S.cards[b].iv)).slice(0,40))}
   else if(kind==='again'){practice=true;q=shuffle([...sess.wrong])}
@@ -1294,7 +1305,7 @@ function start(kind){
 function show(){
   if(!sess.q.length)return finish();
   const k=sess.q[0],w=W[k],c=S.cards[k];sess.flipped=false;sess.typed=null;
-  const ck=$('ck');ck.innerHTML=kj(k);hidePop();ck.style.setProperty('--len',Math.max(2,[...k].length));
+  const ck=$('ck');ck.innerHTML=kj(k);hidePop();$('cstar').innerHTML=starBtn(k);ck.style.setProperty('--len',Math.max(2,[...k].length));
   const isNew=!c||c.s===0;const tag=$('ctag');tag.textContent=(isNew&&!sess.practice?'NEW · ':'')+POS[w.p];tag.className='ctag'+(isNew&&!sess.practice?' new':'');
   $('cback').hidden=true;$('cback').classList.remove('show');$('gActs').hidden=true;$('fActs').hidden=false;
   $('bPass').hidden=!(isNew&&!sess.practice);
@@ -1344,7 +1355,7 @@ function finish(){
   $('finSub').textContent=sess.practice?'집중 복습 완료':'오늘의 카드 완료';
   $('finScore').textContent=seen?`${seen}장`:'0장';
   $('finTxt').textContent=wr.length?`‘몰라요’를 누른 단어 ${wr.length}개 — 내일 학습에서 가장 먼저 다시 나와요.`:seen?'헷갈린 단어 없이 끝냈어요.':'';
-  $('finList').innerHTML=wr.map(k=>`<li><span class="k" lang="ja">${kj(k)}</span><span class="r jp" lang="ja">${esc(W[k].r)}</span><span class="m">${esc(W[k].m)}</span></li>`).join('');
+  $('finList').innerHTML=wr.map(k=>`<li><span class="k" lang="ja">${kj(k)}</span><span class="r jp" lang="ja">${esc(W[k].r)}</span><span class="m">${esc(W[k].m)} ${starBtn(k)}</span></li>`).join('');
   $('bAgain').hidden=!wr.length;
 }
 function home(){sess.on=false;$('sess').hidden=true;$('fin').hidden=true;$('home').hidden=false;renderHome()}
@@ -1353,14 +1364,14 @@ function home(){sess.on=false;$('sess').hidden=true;$('fin').hidden=true;$('home
 let fSt='',sheet=false;
 function renderWords(){
   const q=$('q').value.trim().toLowerCase(),p=$('qpos').value,qk=q?toHira(toKana(q)):'';
-  const cnt={'':0,new:0,learn:0,known:0,pass:0};
-  const list=WORDS.filter(w=>{if(p&&w.p!==p)return false;if(q&&!(w.k.includes(q)||w.r.includes(qk)||w.m.toLowerCase().includes(q)))return false;cnt['']++;cnt[st(w.k)]++;return!fSt||st(w.k)===fSt});
-  $('qst').innerHTML=[['','전체'],['new','새 단어'],['learn','학습 중'],['known','익힘'],['pass','패스']].map(([v,t])=>`<button data-st="${v}" aria-pressed="${fSt===v}">${t} ${cnt[v]}</button>`).join('');
+  const cnt={'':0,new:0,learn:0,known:0,pass:0,star:0};
+  const list=WORDS.filter(w=>{if(p&&w.p!==p)return false;if(q&&!(w.k.includes(q)||w.r.includes(qk)||w.m.toLowerCase().includes(q)))return false;cnt['']++;cnt[st(w.k)]++;if(S.star[w.k])cnt.star++;return!fSt||(fSt==='star'?!!S.star[w.k]:st(w.k)===fSt)});
+  $('qst').innerHTML=[['','전체'],['new','새 단어'],['learn','학습 중'],['known','익힘'],['pass','패스'],['star','★ 저장한 단어']].map(([v,t])=>`<button data-st="${v}" aria-pressed="${fSt===v}">${t} ${cnt[v]}</button>`).join('');
   $('qcount').textContent=`${list.length}개 표시`;
   const t=today();
   $('wlist').innerHTML=list.map(w=>{const s=st(w.k),c=S.cards[w.k];
     const nx=c&&(c.s===1||c.s===2)?(c.due<=t?'오늘 복습':`${c.due-t}일 뒤 복습`):'';
-    return `<li data-k="${esc(w.k)}"><span class="k" lang="ja">${kj(w.k)}</span><span class="rm"><span class="r jp" lang="ja">${esc(w.r.split('・').join(' · '))}</span><span class="m">${esc(w.m)}</span></span><span class="ops">${s==='pass'?'<button data-op="unpass">패스 해제</button>':s==='new'?'<button data-op="pass">패스</button>':'<button data-op="reset">처음부터</button>'}</span><span class="meta"><span class="badge" style="--c:${ST[s].c}">${ST[s].t}</span>${POS[w.p]}${nx?' · '+nx:''}${c&&c.l?' · 틀린 횟수 '+c.l:''}</span></li>`}).join('');
+    return `<li data-k="${esc(w.k)}"><span class="k" lang="ja">${kj(w.k)}</span><span class="rm"><span class="r jp" lang="ja">${esc(w.r.split('・').join(' · '))}</span><span class="m">${esc(w.m)}</span></span><span class="ops">${starBtn(w.k)}${s==='pass'?'<button data-op="unpass">패스 해제</button>':s==='new'?'<button data-op="pass">패스</button>':'<button data-op="reset">처음부터</button>'}</span><span class="meta"><span class="badge" style="--c:${ST[s].c}">${ST[s].t}</span>${POS[w.p]}${nx?' · '+nx:''}${c&&c.l?' · 틀린 횟수 '+c.l:''}</span></li>`}).join('');
 }
 
 /* ---- settings ---- */
@@ -1382,7 +1393,7 @@ function renderAll(){route()}
 
 /* ---- events ---- */
 $('qpos').innerHTML+=Object.entries(POS).map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
-$('bStart').onclick=()=>start('today');$('bMore').onclick=()=>start('more');$('bWeak').onclick=()=>start('weak');$('bYday').onclick=()=>start('yday');
+$('bStart').onclick=()=>start('today');$('bMore').onclick=()=>start('more');$('bWeak').onclick=()=>start('weak');$('bYday').onclick=()=>start('yday');$('bStarS').onclick=()=>start('star');
 $('bAgain').onclick=()=>start('again');$('bHome').onclick=home;$('bQuit').onclick=finish;
 $('bFlip').onclick=flip;$('bPass').onclick=pass;
 $('gActs').onclick=e=>{const b=e.target.closest('[data-g]');if(b)grade(+b.dataset.g)};
@@ -1394,19 +1405,21 @@ document.addEventListener('keydown',e=>{
   if(!sess.flipped){
     if(e.key==='Enter'||(e.key===' '&&!inInput)){e.preventDefault();flip()}
     else if(!inInput&&(e.key==='k'||e.key==='K')&&!$('bPass').hidden){e.preventDefault();pass()}
+    else if(!inInput&&(e.key==='s'||e.key==='S')){$('cstar').querySelector('button').click()}
     return;
   }
   if(e.key==='Enter'&&sess.typed){e.preventDefault();grade(sess.typed)}
   else if(e.key===' '&&!sess.typed){e.preventDefault();grade(3)}
   else if(e.key==='1'){e.preventDefault();grade(1)}
   else if(e.key==='2'){e.preventDefault();grade(3)}
+  else if(e.key==='s'||e.key==='S'){$('cstar').querySelector('button').click()}
   else if(e.key==='r'||e.key==='R'){const k=sess.q[0];if(k)speak(W[k].r.split('・')[0])}
 });
 $('q').addEventListener('input',renderWords);$('qpos').onchange=renderWords;
 $('qst').onclick=e=>{const b=e.target.closest('[data-st]');if(b){fSt=b.dataset.st;renderWords()}};
 $('bSheet').onclick=()=>{sheet=!sheet;$('bSheet').setAttribute('aria-pressed',sheet);$('bSheet').classList.toggle('primary',sheet);$('wlist').classList.toggle('sheet',sheet)};
 $('wlist').onclick=e=>{
-  if(e.target.closest('.kc'))return;const li=e.target.closest('li');if(!li)return;const k=li.dataset.k,op=e.target.closest('[data-op]');
+  if(e.target.closest('.kc')||e.target.closest('[data-star]'))return;const li=e.target.closest('li');if(!li)return;const k=li.dataset.k,op=e.target.closest('[data-op]');
   if(!op){if(sheet)li.querySelector('.rm').classList.toggle('open');return}
   const o=op.dataset.op;
   if(o==='pass')S.cards[k]={s:3,iv:0,ef:2.5,due:0,r:0,l:0};else delete S.cards[k];
@@ -1439,7 +1452,8 @@ function showPop(el){
   let y=r.top-ph-10;if(y<8)y=r.bottom+10;
   pop.style.left=x+'px';pop.style.top=y+'px';
 }
-document.addEventListener('click',e=>{const t=e.target.closest('.kc');if(t)showPop(t);else if(!e.target.closest('#pop'))hidePop()});
+document.addEventListener('click',e=>{const sb=e.target.closest('[data-star]');if(sb){const k=sb.dataset.star;if(S.star[k])delete S.star[k];else S.star[k]=Date.now();document.querySelectorAll('[data-star]').forEach(b=>{if(b.dataset.star===k)b.setAttribute('aria-pressed',!!S.star[k])});save();if(!$('v-words').hidden&&fSt==='star')renderWords();return}
+  const t=e.target.closest('.kc');if(t)showPop(t);else if(!e.target.closest('#pop'))hidePop()});
 window.addEventListener('scroll',hidePop,{passive:true});window.addEventListener('resize',hidePop);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')hidePop()});
 window.addEventListener('hashchange',()=>{hidePop();route()});
