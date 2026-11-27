@@ -35,7 +35,7 @@ button{cursor:pointer;border:1px solid var(--line);background:var(--paper);borde
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--shu);outline-offset:2px}
 input,select,textarea{font-size:16px;border:1px solid var(--line);background:var(--paper);border-radius:10px;min-height:44px;padding:8px 12px}
 kbd{font:12px/1 ui-monospace,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 5px;color:var(--muted);margin-inline-start:6px}
-header{background:var(--band);color:#fff;padding:max(14px,env(safe-area-inset-top)) max(4vw,16px,env(safe-area-inset-right)) 0 max(4vw,16px,env(safe-area-inset-left))}
+header{background:var(--band);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) max(4vw,16px,env(safe-area-inset-right)) 0 max(4vw,16px,env(safe-area-inset-left))}
 main{padding-bottom:max(64px,env(safe-area-inset-bottom))!important}
 html{-webkit-text-size-adjust:100%}button{touch-action:manipulation}
 .hrow{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -257,6 +257,7 @@ textarea{width:100%;min-height:110px;font:13px/1.4 ui-monospace,monospace}
 </section>
 <div id="pop" role="tooltip" hidden></div>
 <p class="sync" id="sync">학습 기록은 이 휴대폰에 자동 저장돼요</p>
+<p class="sync" style="margin-top:4px">버전 1127-5 · 단어 저장(★) 포함</p>
 </main>
 
 <script>
@@ -1461,7 +1462,7 @@ route();
 
 /* ---- account storage & voice (가능할 때만 켜짐) ---- */
 (async()=>{
-  const c=window.claude;if(!c||typeof c.use!=='function'){setSync('학습 기록은 이 휴대폰에 자동 저장돼요');try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});return}
+  const c=window.claude;if(!c||typeof c.use!=='function'){setSync('학습 기록은 이 휴대폰에 자동 저장돼요');try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!sess.on)location.reload()});navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})})}return}
   c.use('tts').then(t=>{tts=t||null}).catch(()=>{});
   try{
     const [db,user]=await Promise.all([c.use('db'),c.use('user')]);
